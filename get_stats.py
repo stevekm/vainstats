@@ -63,7 +63,8 @@ def get_match_data(username, key, match_url):
     header = {
         "Authorization": key,
         "X-TITLE-ID": "semc-vainglory",
-        "Accept": "application/vnd.api+json"
+        # "Accept": "application/vnd.api+json"
+        "Accept": "application/json"
     }
     query = {
         "filter[playerNames]": username
@@ -71,6 +72,11 @@ def get_match_data(username, key, match_url):
     }
     match = requests.get(match_url, headers=header) #, params=query)
     dat = json.loads(match.content)
+    with open('data.txt', 'w') as outfile:
+        json.dump(dat['data'], outfile, indent=4, sort_keys=True)
+    with open('included.txt', 'w') as outfile:
+        json.dump(dat['included'], outfile, indent=4, sort_keys=True)
+    my_debugger(locals().copy())
     for item in dat['included']: print(item); print("")
     dat['data'][0]['attributes']
 
@@ -107,4 +113,4 @@ if __name__ == "__main__":
     key = get_api_key(api_key_file)
     print("Retrieving player data...")
     get_query(region = region, key = key, username = username)
-    # my_debugger(globals().copy())
+    #
