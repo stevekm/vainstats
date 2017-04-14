@@ -2,3 +2,6 @@ api_keys/*
 *.pyc
 key.txt
 .project_log.tsv
+james.js
+included.txt
+data.txt
