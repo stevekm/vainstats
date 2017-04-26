@@ -7,6 +7,7 @@ import requests
 import json
 import argparse
 import sys
+from datetime import datetime, timedelta
 
 # ~~~~ CUSTOM FUNCTIONS ~~~~~~ #
 def my_debugger(vars):
@@ -25,6 +26,14 @@ def my_debugger(vars):
     vars.update(locals())
     shell = code.InteractiveConsole(vars)
     shell.interact()
+
+def print_div(message):
+    '''
+    Print a message with a divider
+    '''
+    divider = '------------------'
+    print('{0}\n{1}'.format(divider, message))
+
 
 def get_api_key(keyfile = "api_keys/key.txt"):
     '''
@@ -56,10 +65,34 @@ def get_region_name(region):
         print("Exiting...")
         sys.exit()
 
-def get_match_data(username, key, match_url):
+def print_match(match):
+    '''
+    Print out information from a match item
+    '''
+    # my_debugger(locals().copy())
+    # if match['type'] != 'match':
+        # sys.exit()
+    match_gameMode = match['attributes']['gameMode']
+    match_id = match['id']
+    match_createdAt = match['attributes']['createdAt']
+    match_endGameReason = match['attributes']['stats']['endGameReason']
+    match_duration = match['attributes']['duration']
+    print_div("Found match")
+    print('id: {0}'.format(match_id))
+    print('outcome: {0}'.format(match_endGameReason))
+    print('type: {0}'.format(match_gameMode))
+    print('date: {0}'.format(match_createdAt))
+    print('duration: {0}'.format(match_duration))
+    print("")
+
+
+def get_match_data(username, key, match_url, match_ID, days_to_subtract):
     '''
     Get data from a game match
     '''
+    search_time = (datetime.today() - timedelta(days=days_to_subtract)).replace(microsecond=0).isoformat()
+    print("Match ID is: {0}".format(match_ID))
+    print("search time is: {0}".format(search_time))
     header = {
         "Authorization": key,
         "X-TITLE-ID": "semc-vainglory",
@@ -67,50 +100,69 @@ def get_match_data(username, key, match_url):
         "Accept": "application/json"
     }
     query = {
-        "filter[playerNames]": username
-        # "page[limit]": "3"
+        "sort": "createdAt",
+        "filter[createdAt-start]": search_time, # "2017-02-28T13:25:30Z",
+        "page[limit]": "3"
     }
-    match = requests.get(match_url, headers=header) #, params=query)
+    if username != None:
+        query["filter[playerNames]"] = username
+    match = requests.get(match_url, headers=header, params=query)
     dat = json.loads(match.content)
-    with open('data.txt', 'w') as outfile:
-        json.dump(dat['data'], outfile, indent=4, sort_keys=True)
-    with open('included.txt', 'w') as outfile:
-        json.dump(dat['included'], outfile, indent=4, sort_keys=True)
-    my_debugger(locals().copy())
-    for item in dat['included']: print(item); print("")
-    dat['data'][0]['attributes']
+    # with open('data.txt', 'w') as outfile:
+    #     json.dump(dat['data'], outfile, indent=4, sort_keys=True)
+    # with open('included.txt', 'w') as outfile:
+    #     json.dump(dat['included'], outfile, indent=4, sort_keys=True)
+    # my_debugger(locals().copy())
+    # for item in dat['included']: print(item); print("")
+    # dat['data'][0]['attributes']
+    # for item in dat['included']: print(item); print("")
+    # for item in dat['included']: print(item['type']); print("")
+    # for item in dat['data']: print(item['type']); print("")
+    if match_ID == None:
+        # my_debugger(locals().copy())
+        for item in dat['data']:
+            print_match(item)
+    elif match_ID != None:
+        print_match(dat['data'])
+    # for key, value in item.items(): print(key); print(value) ; print("")# print(item['type']); print("")
+    # dat['included'][0]['type']
+    # dat['data'][0]['attributes']
 
-def get_query(username, key, region, query_type = "match", *args, **kwargs):
+def build_match_url(region, match_ID):
     '''
-    Get a query from the Vainglory game API
+    Build the URL to submit to the API match query
     '''
     url_base = "https://api.dc01.gamelockerapp.com/shards"
     region_url = '/'.join([url_base, region])
-    if query_type == "match":
-        match_url = '/'.join([region_url, "matches"])
-        get_match_data(username = username, key = key, match_url = match_url)
-    elif query_type == "player":
-        player_url = '/'.join([region_url, "players"])
+    match_url = '/'.join([region_url, "matches"])
+    if match_ID != None:
+        match_url = '/'.join([match_url, match_ID])
+    return(match_url)
 
 # ~~~~ GET SCRIPT ARGS ~~~~~~ #
 parser = argparse.ArgumentParser(description='Vainglory Player Match Stats')
 # required flags
-parser.add_argument("-u",  type = str, dest = 'username', metavar = 'username', help="Player's in-game username")
 
 # optional flags
+parser.add_argument("-n", default = None, type = str,  dest = 'name', metavar = 'name', help="Player's in-game username")
+parser.add_argument("-d", default = 0, type = int,  dest = 'days', metavar = 'days', help="Number of past days in which to search for matches")
+parser.add_argument("-m", default = None, type = str, dest = 'match', metavar = 'match', help="Match ID to look up")
 parser.add_argument("-k", default = 'key.txt', type = str, dest = 'api_key_file', metavar = 'api_key_file', help="Path to text file containing the player's API key. (get one here: https://developer.vainglorygame.com/)")
 parser.add_argument("-r", default = 'na', type = str, dest = 'region', metavar = 'region', help="Player's region. Possibilties: na, eu, sa, ea, or sg. Details here: https://developer.vainglorygame.com/docs?python#regions")
 
 args = parser.parse_args()
 
-username = args.username
+username = args.name
 api_key_file = args.api_key_file
 region = args.region
+match_ID = args.match
+days = args.days
 
 if __name__ == "__main__":
     print('Player name: {}'.format(username))
     print('Region: {}'.format(get_region_name(region = region)))
     key = get_api_key(api_key_file)
     print("Retrieving player data...")
-    get_query(region = region, key = key, username = username)
-    #
+    match_url = build_match_url(region, match_ID)
+    get_match_data(username = username, key = key, match_url = match_url, match_ID = match_ID, days_to_subtract = days)
+    # my_debugger(globals().copy())
