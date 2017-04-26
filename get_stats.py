@@ -85,29 +85,55 @@ def print_match(match):
     print('duration: {0}'.format(match_duration))
     print("")
 
+def print_dict_source(dict_name, dict_obj):
+    '''
+    Print a dictionary to the console in copy/pasteable code format
+    '''
+    print('{0} = {1}'.format(dict_name, json.dumps(dict_obj, sort_keys=True, indent=0)))
+
+def print_str_source(str_name, str_obj, quote = True):
+    '''
+    Print a dictionary to the console in copy/pasteable code format
+    '''
+    if quote == False:
+        print('{0} = {1}'.format(str_name, str_obj))
+    elif quote == True:
+        print('{0} = "{1}"'.format(str_name, str_obj))
+
 
 def get_match_data(username, key, match_url, match_ID, days_to_subtract):
     '''
     Get data from a game match
     '''
     search_time = (datetime.today() - timedelta(days=days_to_subtract)).replace(microsecond=0).isoformat()
+    search_time = str(search_time + "Z")
     print("Match ID is: {0}".format(match_ID))
     print("search time is: {0}".format(search_time))
     header = {
         "Authorization": key,
         "X-TITLE-ID": "semc-vainglory",
-        # "Accept": "application/vnd.api+json"
-        "Accept": "application/json"
+        "Accept": "application/vnd.api+json"
     }
+    print_dict_source("header", header)
     query = {
         "sort": "createdAt",
         "filter[createdAt-start]": search_time, # "2017-02-28T13:25:30Z",
-        "page[limit]": "3"
+        "page[limit]": "5"
     }
     if username != None:
         query["filter[playerNames]"] = username
+    print_dict_source("query", query)
+    print_str_source("match_url", match_url)
+    print('import requests')
+    print_str_source("match", 'requests.get(match_url, headers=header, params=query)', quote = False)
+    # sys.exit()
     match = requests.get(match_url, headers=header, params=query)
     dat = json.loads(match.content)
+    # my_debugger(locals().copy())
+    # match_url = 'https://api.dc01.gamelockerapp.com/shards/na/matches'
+    # header = {'X-TITLE-ID': 'semc-vainglory', 'Accept': 'application/json', 'Authorization': <api_key>}
+    # query = {'sort': 'createdAt', 'filter[playerNames]': 'eLiza', 'page[limit]': '3', 'filter[createdAt-start]': '2017-04-21T09:03:19'}
+    # match = requests.get(match_url, headers=header, params=query)
     # with open('data.txt', 'w') as outfile:
     #     json.dump(dat['data'], outfile, indent=4, sort_keys=True)
     # with open('included.txt', 'w') as outfile:
