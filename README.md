@@ -129,4 +129,4 @@ Type "help", "copyright", "credits" or "license" for more information.
 ```
 
 # Software
-Developed under Python 2.7. Might also work with 2.6 (untested)
+Developed under Python 2.7. Might also work with 2.6 and 3+ (untested)
