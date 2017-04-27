@@ -111,7 +111,7 @@ def print_debug_query(header, query, match_url):
     '''
     Print the query commands to console in an easy copy/paste format for debugging
     '''
-    print_div(message = "Query Commands:\n")
+    print_div(message = "Query Commands for Debugging:\n")
     print_dict_source("header", header)
     print_dict_source("query", query)
     print_str_source("match_url", match_url)
@@ -148,6 +148,11 @@ def get_match_data(username, key, match_url, match_ID, days_to_subtract, page_li
     match.raise_for_status()
     dat = json.loads(match.content)
     if i_mode == True:
+        print('Starting interactive session, you might want to run some of these:')
+        print('\nfrom get_stats import *\n')
+        print('import json\n')
+        print('print(match_ID)\n')
+        print("print(json.dumps(dat, indent=4, sort_keys=True))\n")
         my_debugger(locals().copy())
     if match_ID == None:
         # my_debugger(locals().copy())
@@ -179,7 +184,7 @@ parser.add_argument("-m", default = None, type = str, dest = 'match', metavar = 
 parser.add_argument("-k", default = 'key.txt', type = str, dest = 'api_key_file', metavar = 'api_key_file', help="Path to text file containing the player's API key. (get one here: https://developer.vainglorygame.com/)")
 parser.add_argument("-r", default = 'na', type = str, dest = 'region', metavar = 'region', help="Player's region. Possibilties: na, eu, sa, ea, or sg. Details here: https://developer.vainglorygame.com/docs?python#regions")
 parser.add_argument("--debug", default = False, action='store_true', dest = 'debug_mode', help="Print the query command to console, so you can copy/paste the code elsewhere")
-parser.add_argument("--interactive", default = False, action='store_true', dest = 'i_mode', help="Start an interactive Python session after querying match data")
+parser.add_argument("-i", "--interactive", default = False, action='store_true', dest = 'i_mode', help="Start an interactive Python session after querying match data")
 
 args = parser.parse_args()
 
