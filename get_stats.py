@@ -66,9 +66,9 @@ def get_region_name(region):
     if region in region_dict.keys():
         return(region_dict[region])
     else:
-        print("ERROR: Region '{}' is not recognized. Available regions are:".format(region))
+        print("ERROR: Region '{0}' is not recognized. Available regions are:".format(region))
         for key, value in region_dict.iteritems():
-            print('{}: {}'.format(key, value))
+            print('{0}: {1}'.format(key, value))
         print("Exiting...")
         sys.exit()
 
@@ -100,7 +100,7 @@ def print_dict_source(dict_name, dict_obj):
 
 def print_str_source(str_name, str_obj, quote = True):
     '''
-    Print a dictionary to the console in copy/pasteable code format
+    Print a string to the console in copy/pasteable code format
     '''
     if quote == False:
         print('{0} = {1}'.format(str_name, str_obj))
@@ -116,10 +116,12 @@ def print_debug_query(header, query, match_url):
     print_dict_source("query", query)
     print_str_source("match_url", match_url)
     print('import requests')
+    print('import json')
     print_str_source("match", 'requests.get(match_url, headers=header, params=query)', quote = False)
+    print_str_source("dat", "json.loads(match.content)", quote = False)
     print_div()
 
-def get_match_data(username, key, match_url, match_ID, days_to_subtract, page_limit, debug_mode):
+def get_match_data(username, key, match_url, match_ID, days_to_subtract, page_limit, debug_mode, i_mode):
     '''
     Get data from a game match
     '''
@@ -141,10 +143,12 @@ def get_match_data(username, key, match_url, match_ID, days_to_subtract, page_li
         query["filter[playerNames]"] = username
     if debug_mode == True:
         print_debug_query(header, query, match_url)
-    # sys.exit()
     match = requests.get(match_url, headers=header, params=query)
+    # check for error code
+    match.raise_for_status()
     dat = json.loads(match.content)
-    # my_debugger(locals().copy())
+    if i_mode == True:
+        my_debugger(locals().copy())
     if match_ID == None:
         # my_debugger(locals().copy())
         for item in dat['data']:
@@ -169,12 +173,13 @@ parser = argparse.ArgumentParser(description='Vainglory Player Match Stats')
 
 # optional flags
 parser.add_argument("-n", default = None, type = str,  dest = 'name', metavar = 'name', help="Player's in-game username")
-parser.add_argument("-d", default = 0, type = int,  dest = 'days', metavar = 'days', help="Number of past days in which to search for matches")
+parser.add_argument("-d", default = 1, type = int,  dest = 'days', metavar = 'days', help="Number of past days in which to search for matches")
 parser.add_argument("-p", default = 3, type = int,  dest = 'pages', metavar = 'page limit', help="'Page Limit'; number of matches to return")
 parser.add_argument("-m", default = None, type = str, dest = 'match', metavar = 'match', help="Match ID to look up")
 parser.add_argument("-k", default = 'key.txt', type = str, dest = 'api_key_file', metavar = 'api_key_file', help="Path to text file containing the player's API key. (get one here: https://developer.vainglorygame.com/)")
 parser.add_argument("-r", default = 'na', type = str, dest = 'region', metavar = 'region', help="Player's region. Possibilties: na, eu, sa, ea, or sg. Details here: https://developer.vainglorygame.com/docs?python#regions")
-parser.add_argument("--debug", default = False, action='store_true', dest = 'debug_mode', help="Print the query command")
+parser.add_argument("--debug", default = False, action='store_true', dest = 'debug_mode', help="Print the query command to console, so you can copy/paste the code elsewhere")
+parser.add_argument("--interactive", default = False, action='store_true', dest = 'i_mode', help="Start an interactive Python session after querying match data")
 
 args = parser.parse_args()
 
@@ -185,12 +190,13 @@ match_ID = args.match
 days = args.days
 debug_mode = args.debug_mode
 page_limit = args.pages
+i_mode = args.i_mode
 
 if __name__ == "__main__":
-    print('Player name: {}'.format(username))
-    print('Region: {}'.format(get_region_name(region = region)))
+    print('Player name: {0}'.format(username))
+    print('Region: {0}'.format(get_region_name(region = region)))
     key = get_api_key(api_key_file)
     print("Retrieving player data...")
     match_url = build_match_url(region, match_ID)
-    get_match_data(username = username, key = key, match_url = match_url, match_ID = match_ID, days_to_subtract = days, page_limit = page_limit, debug_mode = debug_mode)
+    get_match_data(username = username, key = key, match_url = match_url, match_ID = match_ID, days_to_subtract = days, page_limit = page_limit, debug_mode = debug_mode, i_mode = i_mode)
     # my_debugger(globals().copy())
