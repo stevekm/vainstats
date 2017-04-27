@@ -27,7 +27,14 @@ def my_debugger(vars):
     shell = code.InteractiveConsole(vars)
     shell.interact()
 
-def print_div(message):
+def json_dump(data, output_file):
+    '''
+    Write JSON data to a file
+    '''
+    with open(output_file, 'w') as o:
+        json.dump(data, o, indent=4, sort_keys=True)
+
+def print_div(message = ''):
     '''
     Print a message with a divider
     '''
@@ -77,7 +84,7 @@ def print_match(match):
     match_createdAt = match['attributes']['createdAt']
     match_endGameReason = match['attributes']['stats']['endGameReason']
     match_duration = match['attributes']['duration']
-    print_div("Found match")
+    print_div(message = "Found match")
     print('id: {0}'.format(match_id))
     print('outcome: {0}'.format(match_endGameReason))
     print('type: {0}'.format(match_gameMode))
@@ -100,8 +107,19 @@ def print_str_source(str_name, str_obj, quote = True):
     elif quote == True:
         print('{0} = "{1}"'.format(str_name, str_obj))
 
+def print_debug_query(header, query, match_url):
+    '''
+    Print the query commands to console in an easy copy/paste format for debugging
+    '''
+    print_div(message = "Query Commands:\n")
+    print_dict_source("header", header)
+    print_dict_source("query", query)
+    print_str_source("match_url", match_url)
+    print('import requests')
+    print_str_source("match", 'requests.get(match_url, headers=header, params=query)', quote = False)
+    print_div()
 
-def get_match_data(username, key, match_url, match_ID, days_to_subtract):
+def get_match_data(username, key, match_url, match_ID, days_to_subtract, debug_mode):
     '''
     Get data from a game match
     '''
@@ -114,45 +132,25 @@ def get_match_data(username, key, match_url, match_ID, days_to_subtract):
         "X-TITLE-ID": "semc-vainglory",
         "Accept": "application/vnd.api+json"
     }
-    print_dict_source("header", header)
     query = {
-        "sort": "createdAt",
+        "sort": "-createdAt", # sort most -> lease recent
         "filter[createdAt-start]": search_time, # "2017-02-28T13:25:30Z",
         "page[limit]": "5"
     }
     if username != None:
         query["filter[playerNames]"] = username
-    print_dict_source("query", query)
-    print_str_source("match_url", match_url)
-    print('import requests')
-    print_str_source("match", 'requests.get(match_url, headers=header, params=query)', quote = False)
+    if debug_mode == True:
+        print_debug_query(header, query, match_url)
     # sys.exit()
     match = requests.get(match_url, headers=header, params=query)
     dat = json.loads(match.content)
     # my_debugger(locals().copy())
-    # match_url = 'https://api.dc01.gamelockerapp.com/shards/na/matches'
-    # header = {'X-TITLE-ID': 'semc-vainglory', 'Accept': 'application/json', 'Authorization': <api_key>}
-    # query = {'sort': 'createdAt', 'filter[playerNames]': 'eLiza', 'page[limit]': '3', 'filter[createdAt-start]': '2017-04-21T09:03:19'}
-    # match = requests.get(match_url, headers=header, params=query)
-    # with open('data.txt', 'w') as outfile:
-    #     json.dump(dat['data'], outfile, indent=4, sort_keys=True)
-    # with open('included.txt', 'w') as outfile:
-    #     json.dump(dat['included'], outfile, indent=4, sort_keys=True)
-    # my_debugger(locals().copy())
-    # for item in dat['included']: print(item); print("")
-    # dat['data'][0]['attributes']
-    # for item in dat['included']: print(item); print("")
-    # for item in dat['included']: print(item['type']); print("")
-    # for item in dat['data']: print(item['type']); print("")
     if match_ID == None:
         # my_debugger(locals().copy())
         for item in dat['data']:
             print_match(item)
     elif match_ID != None:
         print_match(dat['data'])
-    # for key, value in item.items(): print(key); print(value) ; print("")# print(item['type']); print("")
-    # dat['included'][0]['type']
-    # dat['data'][0]['attributes']
 
 def build_match_url(region, match_ID):
     '''
@@ -175,6 +173,7 @@ parser.add_argument("-d", default = 0, type = int,  dest = 'days', metavar = 'da
 parser.add_argument("-m", default = None, type = str, dest = 'match', metavar = 'match', help="Match ID to look up")
 parser.add_argument("-k", default = 'key.txt', type = str, dest = 'api_key_file', metavar = 'api_key_file', help="Path to text file containing the player's API key. (get one here: https://developer.vainglorygame.com/)")
 parser.add_argument("-r", default = 'na', type = str, dest = 'region', metavar = 'region', help="Player's region. Possibilties: na, eu, sa, ea, or sg. Details here: https://developer.vainglorygame.com/docs?python#regions")
+parser.add_argument("--debug", default = False, action='store_true', dest = 'debug_mode', help="Print the query command")
 
 args = parser.parse_args()
 
@@ -183,6 +182,7 @@ api_key_file = args.api_key_file
 region = args.region
 match_ID = args.match
 days = args.days
+debug_mode = args.debug_mode
 
 if __name__ == "__main__":
     print('Player name: {}'.format(username))
@@ -190,5 +190,5 @@ if __name__ == "__main__":
     key = get_api_key(api_key_file)
     print("Retrieving player data...")
     match_url = build_match_url(region, match_ID)
-    get_match_data(username = username, key = key, match_url = match_url, match_ID = match_ID, days_to_subtract = days)
+    get_match_data(username = username, key = key, match_url = match_url, match_ID = match_ID, days_to_subtract = days, debug_mode = debug_mode)
     # my_debugger(globals().copy())
