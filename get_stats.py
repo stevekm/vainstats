@@ -76,6 +76,7 @@ def print_match(match):
     '''
     Print out information from a match item
     '''
+    import time
     # my_debugger(locals().copy())
     # if match['type'] != 'match':
         # sys.exit()
@@ -84,6 +85,7 @@ def print_match(match):
     match_createdAt = match['attributes']['createdAt']
     match_endGameReason = match['attributes']['stats']['endGameReason']
     match_duration = match['attributes']['duration']
+    match_duration = time.strftime("%M:%S", time.gmtime(match_duration))
     print_div(message = "Found match")
     print('id: {0}'.format(match_id))
     print('outcome: {0}'.format(match_endGameReason))
