@@ -190,7 +190,7 @@ def print_player(player_obj):
     player_lifetimegold = player_obj['attributes']['stats']['lifetimeGold']
     player_xp = player_obj['attributes']['stats']['xp']
     player_id = player_obj['id']
-    print_div()
+    # print_div()
     # print(player_obj)
     print('player name: {0}'.format(player_name))
     print('player id: {0}'.format(player_id))
@@ -209,16 +209,80 @@ def print_participant(participant_obj):
     Print out formatted information about a participant
     '''
     participant_id = participant_obj['relationships']['player']['data']['id']
+    participant_gold = participant_obj['attributes']['stats']['gold']
+    participant_deaths = participant_obj['attributes']['stats']['deaths']
+    participant_nonJungleMinionKills = participant_obj['attributes']['stats']['nonJungleMinionKills']
+    participant_skillTier = participant_obj['attributes']['stats']['skillTier']
+    participant_turretCaptures = participant_obj['attributes']['stats']['turretCaptures']
+    participant_winner = participant_obj['attributes']['stats']['winner']
+    participant_karmaLevel = participant_obj['attributes']['stats']['karmaLevel']
+    participant_jungleKills = participant_obj['attributes']['stats']['jungleKills']
+    participant_kills = participant_obj['attributes']['stats']['kills']
+    participant_farm = participant_obj['attributes']['stats']['farm']
+    participant_firstAfkTime = participant_obj['attributes']['stats']['firstAfkTime']
+    participant_assists = participant_obj['attributes']['stats']['assists']
+    participant_minionKills = participant_obj['attributes']['stats']['minionKills']
+    participant_level = participant_obj['attributes']['stats']['level']
+    participant_items_list = participant_obj['attributes']['stats']['items']
+    participant_skin = participant_obj['attributes']['stats']['skinKey']
+    participant_krakenCaptures = participant_obj['attributes']['stats']['krakenCaptures']
+    participant_goldMineCaptures = participant_obj['attributes']['stats']['goldMineCaptures']
+    participant_crystalMineCaptures = participant_obj['attributes']['stats']['crystalMineCaptures']
+    participant_wentAfk = participant_obj['attributes']['stats']['wentAfk']
+    participant_hero = participant_obj['attributes']['actor']
+    # print_div()
     print('participant id: {0}'.format(participant_id))
+    print('participant_gold: {0}'.format(participant_gold))
+    print('participant_deaths: {0}'.format(participant_deaths))
+    print('participant_nonJungleMinionKills: {0}'.format(participant_nonJungleMinionKills))
+    print('participant_skillTier: {0}'.format(participant_skillTier))
+    print('participant_turretCaptures: {0}'.format(participant_turretCaptures))
+    print('participant_winner: {0}'.format(participant_winner))
+    print('participant_karmaLevel: {0}'.format(participant_karmaLevel))
+    print('participant_jungleKills: {0}'.format(participant_jungleKills))
+    print('participant_kills: {0}'.format(participant_kills))
+    print('participant_farm: {0}'.format(participant_farm))
+    print('participant_firstAfkTime: {0}'.format(participant_firstAfkTime))
+    print('participant_assists: {0}'.format(participant_assists))
+    print('participant_minionKills: {0}'.format(participant_minionKills))
+    print('participant_level: {0}'.format(participant_level))
+    print('participant_skin: {0}'.format(participant_skin))
+    print('participant_krakenCaptures: {0}'.format(participant_krakenCaptures))
+    print('participant_goldMineCaptures: {0}'.format(participant_goldMineCaptures))
+    print('participant_crystalMineCaptures: {0}'.format(participant_crystalMineCaptures))
+    print('participant_wentAfk: {0}'.format(participant_wentAfk))
+    print('participant_hero: {0}'.format(participant_hero))
+    # print(participant_obj.keys())
+    # print(participant_obj['attributes'])
+
+def parse_players_participants(players_list, participants_list):
+    '''
+    '''
+    from collections import defaultdict
+    users = defaultdict(dict)
+
+    for player in players_list:
+        # print_player(player)
+        player_id = player['id']
+        users[player_id]['player'] = player
+    for participant in participants_list:
+        # print_participant(participant)
+        participant_id = participant['relationships']['player']['data']['id']
+        users[participant_id]['participant'] = participant
+    for user_id in users.keys():
+        print_div()
+        print_div(message = "Player info")
+        print_player(users[user_id]['player'])
+        print_div(message = "Participant info")
+        print_participant(users[user_id]['participant'])
+
+
+
 
 def aggregate_included_assets(match_included):
     '''
     Build a new dict from the API 'included' object, one entry per item ID
     '''
-    # from collections import defaultdict
-    # assets = defaultdict(dict)
-    # for item in match_included:
-    # match_included[item['id']][]
     players = []
     participants = []
     for item in match_included:
@@ -228,12 +292,7 @@ def aggregate_included_assets(match_included):
             players.append(item)
         if item_type == "participant":
             participants.append(item)
-    print_div(message = "Player info")
-    for player in players:
-        print_player(player)
-    print_div(message = "Participant info")
-    for participant in participants:
-        print_participant(participant)
+    parse_players_participants(players_list = players, participants_list = participants)
 
 
 
