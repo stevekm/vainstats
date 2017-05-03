@@ -368,13 +368,16 @@ This is useful if you need to copy/paste the Python commands elsewhere.
 For even more debugging, you can enter 'interactive' mode with `-i` in order to start an interactive Python session immediately after retrieving query results
 
 ```
-$ ./get_stats.py -m 7c12bc86-2a89-11e7-a2d2-0667892d829e -i
+$ ./get_stats.py -i
 Player name: None
 Region: North America
 Retrieving player data...
-Match ID is: 7c12bc86-2a89-11e7-a2d2-0667892d829e
-search time is: 2017-04-25T22:00:16Z
-Starting interactive session, you might want to run some of these:
+Match ID is: None
+search time is: 2017-05-02T11:22:25Z
+------------------
+
+
+# Starting interactive session, you might want to run some of these:
 
 from get_stats import *
 
@@ -384,11 +387,16 @@ print(match_ID)
 
 print(json.dumps(dat, indent=4, sort_keys=True))
 
+for item in dat['included']: print(item['type'])
+
+------------------
+
 Python 2.7.13 (default, Apr  4 2017, 08:47:57)
 [GCC 4.2.1 Compatible Apple LLVM 8.1.0 (clang-802.0.38)] on darwin
 Type "help", "copyright", "credits" or "license" for more information.
 (InteractiveConsole)
->>>
+>>> 
+
 ```
 
 # Software
