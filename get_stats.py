@@ -146,15 +146,26 @@ def get_match_data(username, key, match_url, match_ID, days_to_subtract, page_li
     if debug_mode == True:
         print_debug_query(header, query, match_url)
     match = requests.get(match_url, headers=header, params=query)
-    # check for error code
+    # check for error code in API payload return
     match.raise_for_status()
     dat = json.loads(match.content)
     if i_mode == True:
-        print('Starting interactive session, you might want to run some of these:')
+        print('\nStarting interactive session, you might want to run some of these:')
         print('\nfrom get_stats import *\n')
         print('import json\n')
         print('print(match_ID)\n')
         print("print(json.dumps(dat, indent=4, sort_keys=True))\n")
+        print("for item in dat['included']: print(item['type'])\n")
+        # scratchpad goes here....
+        # for item in dat['included']: print(item.keys())
+        # for item in dat['included']: print(item['type'])
+        # for item in dat['included']: print('{}\t{}'.format(item['type'], item['id'])); print item.keys()
+        # for item in dat['included']:
+        #     if item['type'] == 'participant': print item
+        # for n, item in enumerate(dat['included']):
+        #     if item['type'] == 'participant': print(n); print(item.keys())
+        # dat['included'][10]['attributes']['name']
+        # dat['included'][9]['type']
         my_debugger(locals().copy())
     if match_ID == None:
         # my_debugger(locals().copy())
@@ -162,6 +173,69 @@ def get_match_data(username, key, match_url, match_ID, days_to_subtract, page_li
             print_match(item)
     elif match_ID != None:
         print_match(dat['data'])
+        aggregate_included_assets(dat['included'])
+
+def print_player(player_obj):
+    '''
+    Print out formatted information about the player object
+    '''
+    player_region = player_obj['attributes']['shardId']
+    player_name = player_obj['attributes']['name']
+    player_wins = player_obj['attributes']['stats']['wins']
+    player_played_rank = player_obj['attributes']['stats']['played_ranked']
+    player_winstreak = player_obj['attributes']['stats']['winStreak']
+    player_lossstreak = player_obj['attributes']['stats']['lossStreak']
+    player_played = player_obj['attributes']['stats']['played']
+    player_level = player_obj['attributes']['stats']['level']
+    player_lifetimegold = player_obj['attributes']['stats']['lifetimeGold']
+    player_xp = player_obj['attributes']['stats']['xp']
+    player_id = player_obj['id']
+    print_div()
+    # print(player_obj)
+    print('player name: {0}'.format(player_name))
+    print('player id: {0}'.format(player_id))
+    print('match xp: {0}'.format(player_xp))
+    print('match lifetimegold: {0}'.format(player_lifetimegold))
+    print('player region: {0}'.format(player_region))
+    print('player level: {0}'.format(player_level))
+    print('player wins: {0}'.format(player_wins))
+    print('winstreak: {0}'.format(player_winstreak))
+    print('lossstreak: {0}'.format(player_lossstreak))
+    print('played: {0}'.format(player_played))
+    print('played rank: {0}'.format(player_played_rank))
+
+def print_participant(participant_obj):
+    '''
+    Print out formatted information about a participant
+    '''
+    participant_id = participant_obj['relationships']['player']['data']['id']
+    print('participant id: {0}'.format(participant_id))
+
+def aggregate_included_assets(match_included):
+    '''
+    Build a new dict from the API 'included' object, one entry per item ID
+    '''
+    # from collections import defaultdict
+    # assets = defaultdict(dict)
+    # for item in match_included:
+    # match_included[item['id']][]
+    players = []
+    participants = []
+    for item in match_included:
+        item_type = item['type']
+        item_id = item['id']
+        if item_type == "player":
+            players.append(item)
+        if item_type == "participant":
+            participants.append(item)
+    print_div(message = "Player info")
+    for player in players:
+        print_player(player)
+    print_div(message = "Participant info")
+    for participant in participants:
+        print_participant(participant)
+
+
 
 def build_match_url(region, match_ID):
     '''
