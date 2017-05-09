@@ -3,11 +3,13 @@
 This script will retrieve player data from the Vainglory game API
 '''
 # ~~~~~~ LOAD PACKAGES ~~~~~ #
+from __future__ import division
 import requests
 import json
 import argparse
 import sys
 from datetime import datetime, timedelta
+
 
 # ~~~~ CUSTOM FUNCTIONS ~~~~~~ #
 def my_debugger(vars):
@@ -141,7 +143,7 @@ def print_debug_query(header, query, match_url):
     print_str_source("dat", "json.loads(match.content)", quote = False)
     print_div()
 
-def get_match_data(username, key, match_url, match_ID, days_to_subtract, page_limit, debug_mode, i_mode, harvest_mode):
+def get_match_data(username, key, match_url, match_ID, days_to_subtract, page_limit, debug_mode, i_mode, harvest_mode, fail_mode):
     '''
     Get data from a game match
     '''
@@ -199,7 +201,8 @@ def get_match_data(username, key, match_url, match_ID, days_to_subtract, page_li
         print_match(dat['data'])
         save_match_data(dat['data'], harvest_mode = harvest_mode)
         save_match_included(dat['included'], harvest_mode = harvest_mode)
-        aggregate_included_assets(dat['included'])
+        user_data = refactor_included_assets(dat['included'])
+        if fail_mode == True: fail_finder(user_data)
 
 
 def save_match_included(included, harvest_mode, output_dir = "saved_matches"):
@@ -327,11 +330,10 @@ def parse_players_participants(players_list, participants_list):
         print_player(users[user_id]['player'])
         print_div(message = "Participant info")
         print_participant(users[user_id]['participant'])
+    return(users)
 
 
-
-
-def aggregate_included_assets(match_included):
+def refactor_included_assets(match_included):
     '''
     Build a new dict from the API 'included' object, one entry per item ID
     '''
@@ -344,8 +346,8 @@ def aggregate_included_assets(match_included):
             players.append(item)
         if item_type == "participant":
             participants.append(item)
-    parse_players_participants(players_list = players, participants_list = participants)
-
+    user_data = parse_players_participants(players_list = players, participants_list = participants)
+    return(user_data)
 
 
 def build_match_url(region, match_ID):
@@ -358,6 +360,25 @@ def build_match_url(region, match_ID):
     if match_ID != None:
         match_url = '/'.join([match_url, match_ID])
     return(match_url)
+
+
+def fail_finder(user_data):
+    '''
+    Ranks players in a match based on included assets user data
+    '''
+    from collections import defaultdict
+    rankings = defaultdict(float)
+    print_div()
+    print_div(message = "Player Match Ranking")
+    for key, value in user_data.iteritems():
+        rankings[key] += value['player']['attributes']['stats']['level']
+        rankings[key] += value['player']['attributes']['stats']['wins']
+        rankings[key] += value['player']['attributes']['stats']['played_ranked']
+        rankings[key] += value['player']['attributes']['stats']['played']
+        rankings[key] += value['player']['attributes']['stats']['winStreak'] * 10
+        rankings[key] -= value['player']['attributes']['stats']['lossStreak'] * 10
+        print(key, value)
+    my_debugger(locals().copy())
 
 # ~~~~ GET SCRIPT ARGS ~~~~~~ #
 parser = argparse.ArgumentParser(description='Vainglory Player Match Stats')
@@ -372,7 +393,9 @@ parser.add_argument("-k", default = 'key.txt', type = str, dest = 'api_key_file'
 parser.add_argument("-r", default = 'na', type = str, dest = 'region', metavar = 'region', help="Player's region. Possibilties: na, eu, sa, ea, or sg. Details here: https://developer.vainglorygame.com/docs?python#regions")
 parser.add_argument("--debug", default = False, action='store_true', dest = 'debug_mode', help="Print the query command to console, so you can copy/paste the code elsewhere")
 parser.add_argument("-i", "--interactive", default = False, action='store_true', dest = 'i_mode', help="Start an interactive Python session after querying match data")
-parser.add_argument("--harvest", default = False, action='store_true', dest = 'harvest_mode', help="'Harvest mode', saves each match to a JSON file")
+parser.add_argument("--harvest", default = False, action='store_true', dest = 'harvest_mode', help="'Harvest' mode, saves each match to a JSON file")
+parser.add_argument("--fail", default = False, action='store_true', dest = 'fail_mode', help="'Fail Finder' mode, ranks players in a match (match ID required)")
+
 
 
 args = parser.parse_args()
@@ -386,6 +409,7 @@ debug_mode = args.debug_mode
 page_limit = args.pages
 i_mode = args.i_mode
 harvest_mode = args.harvest_mode
+fail_mode = args.fail_mode
 
 if __name__ == "__main__":
     print('Player name: {0}'.format(username))
@@ -393,5 +417,5 @@ if __name__ == "__main__":
     key = get_api_key(api_key_file)
     print("Retrieving player data...")
     match_url = build_match_url(region, match_ID)
-    get_match_data(username = username, key = key, match_url = match_url, match_ID = match_ID, days_to_subtract = days, page_limit = page_limit, debug_mode = debug_mode, i_mode = i_mode, harvest_mode = harvest_mode)
+    get_match_data(username = username, key = key, match_url = match_url, match_ID = match_ID, days_to_subtract = days, page_limit = page_limit, debug_mode = debug_mode, i_mode = i_mode, harvest_mode = harvest_mode, fail_mode = fail_mode)
     # my_debugger(globals().copy())
