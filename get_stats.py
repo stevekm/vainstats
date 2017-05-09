@@ -27,6 +27,24 @@ def my_debugger(vars):
     shell = code.InteractiveConsole(vars)
     shell.interact()
 
+def mkdirs(path, return_path=False):
+    '''
+    Make a directory, and all parent dir's in the path
+    '''
+    import sys
+    import os
+    import errno
+    try:
+        os.makedirs(path)
+    except OSError as exc:  # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
+    if return_path:
+        return path
+
+
 def json_dump(data, output_file):
     '''
     Write JSON data to a file
@@ -123,7 +141,7 @@ def print_debug_query(header, query, match_url):
     print_str_source("dat", "json.loads(match.content)", quote = False)
     print_div()
 
-def get_match_data(username, key, match_url, match_ID, days_to_subtract, page_limit, debug_mode, i_mode):
+def get_match_data(username, key, match_url, match_ID, days_to_subtract, page_limit, debug_mode, i_mode, harvest_mode):
     '''
     Get data from a game match
     '''
@@ -157,6 +175,7 @@ def get_match_data(username, key, match_url, match_ID, days_to_subtract, page_li
         print('print(match_ID)\n')
         print("print(json.dumps(dat, indent=4, sort_keys=True))\n")
         print("for item in dat['included']: print(item['type'])\n")
+        print("for item in dat['data']: print('{} {}'.format(item['type'], item['id']))\n")
         print_div()
         # scratchpad goes here....
         # for item in dat['included']: print(item.keys())
@@ -173,9 +192,41 @@ def get_match_data(username, key, match_url, match_ID, days_to_subtract, page_li
         # my_debugger(locals().copy())
         for item in dat['data']:
             print_match(item)
+            save_match_data(item, harvest_mode = harvest_mode)
+        for item in dat['included']:
+            save_match_included(item, harvest_mode = harvest_mode)
     elif match_ID != None:
         print_match(dat['data'])
+        save_match_data(dat['data'], harvest_mode = harvest_mode)
+        save_match_included(dat['included'], harvest_mode = harvest_mode)
         aggregate_included_assets(dat['included'])
+
+
+def save_match_included(included, harvest_mode, output_dir = "saved_matches"):
+    '''
+    Save the 'included' assets to a JSON
+    '''
+    import os
+    if harvest_mode == True:
+        mkdirs(output_dir)
+        included_id = included['id']
+        included_type = included['type']
+        output_filename = os.path.join(output_dir, '{0}_{1}.json'.format(included_id, included_type))
+        json_dump(included, output_filename)
+        print('Saved included assets data to file:\n{0}\n'.format(output_filename))
+
+
+def save_match_data(match, harvest_mode, output_dir = "saved_matches"):
+    '''
+    Saves a JSON file for the match data
+    '''
+    import os
+    if harvest_mode == True:
+        mkdirs(output_dir)
+        match_id = match['id']
+        output_filename = os.path.join(output_dir, match_id + '_data.json')
+        json_dump(match, output_filename)
+        print('Saved match data to file:\n{0}\n'.format(output_filename))
 
 def print_player(player_obj):
     '''
@@ -321,6 +372,8 @@ parser.add_argument("-k", default = 'key.txt', type = str, dest = 'api_key_file'
 parser.add_argument("-r", default = 'na', type = str, dest = 'region', metavar = 'region', help="Player's region. Possibilties: na, eu, sa, ea, or sg. Details here: https://developer.vainglorygame.com/docs?python#regions")
 parser.add_argument("--debug", default = False, action='store_true', dest = 'debug_mode', help="Print the query command to console, so you can copy/paste the code elsewhere")
 parser.add_argument("-i", "--interactive", default = False, action='store_true', dest = 'i_mode', help="Start an interactive Python session after querying match data")
+parser.add_argument("--harvest", default = False, action='store_true', dest = 'harvest_mode', help="'Harvest mode', saves each match to a JSON file")
+
 
 args = parser.parse_args()
 
@@ -332,6 +385,7 @@ days = args.days
 debug_mode = args.debug_mode
 page_limit = args.pages
 i_mode = args.i_mode
+harvest_mode = args.harvest_mode
 
 if __name__ == "__main__":
     print('Player name: {0}'.format(username))
@@ -339,5 +393,5 @@ if __name__ == "__main__":
     key = get_api_key(api_key_file)
     print("Retrieving player data...")
     match_url = build_match_url(region, match_ID)
-    get_match_data(username = username, key = key, match_url = match_url, match_ID = match_ID, days_to_subtract = days, page_limit = page_limit, debug_mode = debug_mode, i_mode = i_mode)
+    get_match_data(username = username, key = key, match_url = match_url, match_ID = match_ID, days_to_subtract = days, page_limit = page_limit, debug_mode = debug_mode, i_mode = i_mode, harvest_mode = harvest_mode)
     # my_debugger(globals().copy())
