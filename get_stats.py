@@ -367,6 +367,7 @@ def fail_finder(user_data):
     Ranks players in a match based on included assets user data
     '''
     from collections import defaultdict
+    from collections import OrderedDict
     rankings = defaultdict(lambda: defaultdict(float))
     print_div()
     print_div(message = "Player Match Ranking")
@@ -403,10 +404,17 @@ def fail_finder(user_data):
             rankings[key]['match-stats'] -= 50
         if value['participant']['attributes']['stats']['wentAfk'] != False:
             rankings[key]['match-stats'] -= 50
+        if value['participant']['attributes']['stats']['winner'] == True:
+            rankings[key]['team'] = 'won'
+        if value['participant']['attributes']['stats']['winner'] == False:
+            rankings[key]['team'] = 'lost'
         rankings[key]['total'] = rankings[key]['match-stats'] + rankings[key]['user-stats']
     # my_debugger(locals().copy())
-    for key, data in rankings.items():
-        print('\t'.join([data['name'], data['hero'], str(data['total']), key]))
+    row_format ="{:<15}{:>15}{:>15}{:^25}{:>35}"
+    print(row_format.format('Name', 'Hero', 'Team', 'Score', 'ID'))
+    print(row_format.format('----------','----------', '----------', '----------', '------------------------------'))
+    for key, data in OrderedDict(sorted(rankings.items(), key=lambda x: x[1]['total'], reverse=True)).items():
+        print(row_format.format(data['name'], data['hero'], data['team'], str(data['total']), key))
 
 
 # ~~~~ GET SCRIPT ARGS ~~~~~~ #
