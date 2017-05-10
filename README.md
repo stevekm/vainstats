@@ -330,12 +330,14 @@ match winner: False
 
 ------------------
 Player Match Ranking
-Vitryus	*Rona*	244.055165039	069054d2-6eca-11e4-a9c4-06641bcbf424
-death0227	*Rona*	29.8221969922	7fff2cc8-85d2-11e6-8f48-06fc87f1dd11
-carter1355	*Kestrel*	101.509078372	7edf667e-13cc-11e5-8431-06d90c28bf1a
-frontierfighter	*Celeste*	24.0859669922	90b45d64-ecba-11e6-8caa-06d90c28bf1a
-REkT	*Taka*	0.156476992187	87b65b32-ef36-11e4-b686-06eb725f8a76
-eLiza	*Skaarf*	-78.5654249609	c8e90cbc-fc45-11e6-b893-06f4ee369f53
+Name                      Hero           Team          Score                                           ID
+----------          ----------     ----------       ----------             ------------------------------
+Vitryus                 *Rona*           lost      244.055165039      069054d2-6eca-11e4-a9c4-06641bcbf424
+carter1355           *Kestrel*           lost      101.509078372      7edf667e-13cc-11e5-8431-06d90c28bf1a
+death0227               *Rona*            won      29.8221969922      7fff2cc8-85d2-11e6-8f48-06fc87f1dd11
+frontierfighter      *Celeste*            won      24.0859669922      90b45d64-ecba-11e6-8caa-06d90c28bf1a
+REkT                    *Taka*            won     0.156476992187      87b65b32-ef36-11e4-b686-06eb725f8a76
+eLiza                 *Skaarf*           lost     -78.5654249609      c8e90cbc-fc45-11e6-b893-06f4ee369f53
 ```
 
 # Extras
