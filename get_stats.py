@@ -367,18 +367,47 @@ def fail_finder(user_data):
     Ranks players in a match based on included assets user data
     '''
     from collections import defaultdict
-    rankings = defaultdict(float)
+    rankings = defaultdict(lambda: defaultdict(float))
     print_div()
     print_div(message = "Player Match Ranking")
     for key, value in user_data.iteritems():
-        rankings[key] += value['player']['attributes']['stats']['level']
-        rankings[key] += value['player']['attributes']['stats']['wins']
-        rankings[key] += value['player']['attributes']['stats']['played_ranked']
-        rankings[key] += value['player']['attributes']['stats']['played']
-        rankings[key] += value['player']['attributes']['stats']['winStreak'] * 10
-        rankings[key] -= value['player']['attributes']['stats']['lossStreak'] * 10
-        print(key, value)
-    my_debugger(locals().copy())
+        # value['participant']['attributes']['stats']['itemUses']
+        # value['participant']['attributes']['stats']['itemGrants']
+        rankings[key]['hero'] = value['participant']['attributes']['actor']
+        rankings[key]['name'] = value['player']['attributes']['name']
+        rankings[key]['user-stats'] += value['player']['attributes']['stats']['level']
+        rankings[key]['user-stats'] += value['player']['attributes']['stats']['wins'] / 100
+        rankings[key]['user-stats'] += value['player']['attributes']['stats']['played_ranked'] / 75
+        rankings[key]['user-stats'] += value['player']['attributes']['stats']['played'] / 100
+        rankings[key]['user-stats'] += value['player']['attributes']['stats']['winStreak'] * 10
+        rankings[key]['user-stats'] -= value['player']['attributes']['stats']['lossStreak'] * 10
+        rankings[key]['match-stats'] += value['participant']['attributes']['stats']['karmaLevel'] * 10
+        rankings[key]['match-stats'] += value['participant']['attributes']['stats']['skillTier'] * 10
+        rankings[key]['match-stats'] += value['player']['attributes']['stats']['lifetimeGold'] / 1000
+        rankings[key]['match-stats'] += value['player']['attributes']['stats']['xp'] / 100000
+        # rankings[key]['match-stats'] -= value['participant']['attributes']['stats']['gold']
+        rankings[key]['match-stats'] -= value['participant']['attributes']['stats']['gold'] / 10
+        rankings[key]['match-stats'] -= value['participant']['attributes']['stats']['deaths']
+        rankings[key]['match-stats'] += value['participant']['attributes']['stats']['kills']
+        rankings[key]['match-stats'] += value['participant']['attributes']['stats']['turretCaptures'] * 3
+        rankings[key]['match-stats'] += value['participant']['attributes']['stats']['jungleKills']
+        rankings[key]['match-stats'] += value['participant']['attributes']['stats']['farm']
+        rankings[key]['match-stats'] += value['participant']['attributes']['stats']['assists'] * 0.5
+        rankings[key]['match-stats'] += value['participant']['attributes']['stats']['minionKills'] / 10
+        rankings[key]['match-stats'] += value['participant']['attributes']['stats']['krakenCaptures'] * 5
+        rankings[key]['match-stats'] += value['participant']['attributes']['stats']['goldMineCaptures'] * 3
+        rankings[key]['match-stats'] += value['participant']['attributes']['stats']['crystalMineCaptures'] * 2
+        if value['participant']['attributes']['stats']['winner'] == True:
+            rankings[key]['match-stats'] += 10
+        if value['participant']['attributes']['stats']['firstAfkTime'] > 0:
+            rankings[key]['match-stats'] -= 50
+        if value['participant']['attributes']['stats']['wentAfk'] != False:
+            rankings[key]['match-stats'] -= 50
+        rankings[key]['total'] = rankings[key]['match-stats'] + rankings[key]['user-stats']
+    # my_debugger(locals().copy())
+    for key, data in rankings.items():
+        print('\t'.join([data['name'], data['hero'], str(data['total']), key]))
+
 
 # ~~~~ GET SCRIPT ARGS ~~~~~~ #
 parser = argparse.ArgumentParser(description='Vainglory Player Match Stats')
