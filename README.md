@@ -55,6 +55,13 @@ You can look up more information about a specific game match by using the `-m` a
 ./get_stats.py -m 7a6fd762-29d8-11e7-a2d2-0667892d829e
 ```
 
+## Fail Finder
+Player rankings (aka the 'Fail Finder') can be calculated by including the `--fail` argument along with a match ID:
+
+```
+./get_stats.py -m 59d62746-2905-11e7-a2d2-0667892d829e --fail
+```
+
 ## Options
 More specific match query criteria can be supplied with script arguments, such as:
 
@@ -92,15 +99,15 @@ duration: 221
 
 ```
 
-Searching for details on a specific match:
+Searching for details on a specific match with 'Fail Finder' match rankings:
 
 ```
-$ ./get_stats.py -m 59d62746-2905-11e7-a2d2-0667892d829e
+$ ./get_stats.py -m 59d62746-2905-11e7-a2d2-0667892d829e --fail
 Player name: None
 Region: North America
 Retrieving player data...
 Match ID is: 59d62746-2905-11e7-a2d2-0667892d829e
-search time is: 2017-05-02T11:17:54Z
+search time is: 2017-05-08T20:29:34Z
 ------------------
 Found match
 id: 59d62746-2905-11e7-a2d2-0667892d829e
@@ -319,6 +326,16 @@ match krakenCaptures: 0
 match goldMineCaptures: 1
 match crystalMineCaptures: 0
 match winner: False
+------------------
+
+------------------
+Player Match Ranking
+Vitryus	*Rona*	244.055165039	069054d2-6eca-11e4-a9c4-06641bcbf424
+death0227	*Rona*	29.8221969922	7fff2cc8-85d2-11e6-8f48-06fc87f1dd11
+carter1355	*Kestrel*	101.509078372	7edf667e-13cc-11e5-8431-06d90c28bf1a
+frontierfighter	*Celeste*	24.0859669922	90b45d64-ecba-11e6-8caa-06d90c28bf1a
+REkT	*Taka*	0.156476992187	87b65b32-ef36-11e4-b686-06eb725f8a76
+eLiza	*Skaarf*	-78.5654249609	c8e90cbc-fc45-11e6-b893-06f4ee369f53
 ```
 
 # Extras
