@@ -87,7 +87,7 @@ def get_region_name(region):
         return(region_dict[region])
     else:
         print("ERROR: Region '{0}' is not recognized. Available regions are:".format(region))
-        for key, value in region_dict.iteritems():
+        for key, value in region_dict.items():
             print('{0}: {1}'.format(key, value))
         print("Exiting...")
         sys.exit()
@@ -371,7 +371,7 @@ def fail_finder(user_data):
     rankings = defaultdict(lambda: defaultdict(float))
     print_div()
     print_div(message = "Player Match Ranking")
-    for key, value in user_data.iteritems():
+    for key, value in user_data.items():
         # value['participant']['attributes']['stats']['itemUses']
         # value['participant']['attributes']['stats']['itemGrants']
         rankings[key]['hero'] = value['participant']['attributes']['actor']
@@ -416,6 +416,27 @@ def fail_finder(user_data):
     for key, data in OrderedDict(sorted(rankings.items(), key=lambda x: x[1]['total'], reverse=True)).items():
         print(row_format.format(data['name'], data['hero'], data['team'], str(data['total']), key))
 
+def run(args):
+    '''
+    '''
+    username = args.name
+    api_key_file = args.api_key_file
+    region = args.region
+    match_ID = args.match
+    days = args.days
+    debug_mode = args.debug_mode
+    page_limit = args.pages
+    i_mode = args.i_mode
+    harvest_mode = args.harvest_mode
+    fail_mode = args.fail_mode
+    print('Player name: {0}'.format(username))
+    print('Region: {0}'.format(get_region_name(region = region)))
+    key = get_api_key(api_key_file)
+    print("Retrieving player data...")
+    match_url = build_match_url(region, match_ID)
+    get_match_data(username = username, key = key, match_url = match_url, match_ID = match_ID, days_to_subtract = days, page_limit = page_limit, debug_mode = debug_mode, i_mode = i_mode, harvest_mode = harvest_mode, fail_mode = fail_mode)
+
+
 
 # ~~~~ GET SCRIPT ARGS ~~~~~~ #
 parser = argparse.ArgumentParser(description='Vainglory Player Match Stats')
@@ -433,26 +454,7 @@ parser.add_argument("-i", "--interactive", default = False, action='store_true',
 parser.add_argument("--harvest", default = False, action='store_true', dest = 'harvest_mode', help="'Harvest' mode, saves each match to a JSON file")
 parser.add_argument("--fail", default = False, action='store_true', dest = 'fail_mode', help="'Fail Finder' mode, ranks players in a match (match ID required)")
 
-
-
 args = parser.parse_args()
 
-username = args.name
-api_key_file = args.api_key_file
-region = args.region
-match_ID = args.match
-days = args.days
-debug_mode = args.debug_mode
-page_limit = args.pages
-i_mode = args.i_mode
-harvest_mode = args.harvest_mode
-fail_mode = args.fail_mode
-
 if __name__ == "__main__":
-    print('Player name: {0}'.format(username))
-    print('Region: {0}'.format(get_region_name(region = region)))
-    key = get_api_key(api_key_file)
-    print("Retrieving player data...")
-    match_url = build_match_url(region, match_ID)
-    get_match_data(username = username, key = key, match_url = match_url, match_ID = match_ID, days_to_subtract = days, page_limit = page_limit, debug_mode = debug_mode, i_mode = i_mode, harvest_mode = harvest_mode, fail_mode = fail_mode)
-    # my_debugger(globals().copy())
+    run(args)
