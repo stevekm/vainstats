@@ -432,7 +432,6 @@ def run():
     Arg parsing for the script when run from command line
     '''
     parser = argparse.ArgumentParser(description='Vainglory Player Match Stats')
-    # required flags
 
     # optional flags
     parser.add_argument("-n", default = None, type = str,  dest = 'username', metavar = 'name', help="Player's in-game username")
