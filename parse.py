@@ -10,7 +10,7 @@ def get_match(data, match_id):
         if item['id'] == match_id:
             return(item)
 
-def get_rosters(match):
+def get_roster_ids(match):
     '''
     Get the roster IDs from a match list of dicts
     '''

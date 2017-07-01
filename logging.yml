@@ -1,0 +1,28 @@
+version: 1
+formatters:
+  default: # default debug logger
+    format: '[%(asctime)s] (%(name)s:%(funcName)s:%(lineno)d:%(levelname)s) %(message)s' # %(module)s:
+    datefmt: "%Y-%m-%d %H:%M:%S"
+  info: # basic info logging, for easier reading
+    format: '[%(levelname)-8s] %(message)s'
+    datefmt: "%Y-%m-%d %H:%M:%S"
+  console:
+    format: '[%(asctime)s] (%(name)s:%(funcName)s:%(lineno)d:%(levelname)s) %(message)s'
+    datefmt: "%Y-%m-%d %H:%M:%S"
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: console
+    stream: ext://sys.stdout
+  main:
+    () : __main__.logpath # output file path
+    level: DEBUG
+    formatter: default
+
+loggers:
+  app:
+    level: DEBUG
+    handlers: [console, main]
+    propagate: true
