@@ -172,7 +172,7 @@ def get_match_data(username, key, match_url, match_ID, days_to_subtract, page_li
     if i_mode == True:
         print_div()
         print('\n# Starting interactive session, you might want to run some of these:')
-        print('\nfrom get_stats import *\n')
+        print('\nfrom vainstats import *\n')
         print('import json\n')
         print('print(match_ID)\n')
         print("print(json.dumps(dat, indent=4, sort_keys=True))\n")
