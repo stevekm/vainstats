@@ -1,41 +1,58 @@
 # vainstats
 Retrieve game data for Vainglory matches using the [Vainglory API](https://developer.vainglorygame.com/docs). 
 
-# Setup
+__NOTE:__ Development of this app has shifted to focus on creating a [Python Dash](https://plot.ly/products/dash/) app. 
 
-First, clone this repository:
+# Installation
+## Anaconda
+- __[Recomended]__ Install Python 3 with [Anaconda](https://www.continuum.io/downloads) and make it your default Python
+
+## Setup
+- Clone this repository:
 ```
 git clone https://github.com/stevekm/vainstats.git
 cd vainstats
 ```
-
-Get a Vainglory developer API key [here](https://developer.vainglorygame.com/). 
-
-Save the API key in this repository directory under the file name `key.txt` in this format:
-
+- Get a Vainglory developer API key [here](https://developer.vainglorygame.com/), and save it in this repository directory under the file name `key.txt`. Example:
 ```
 $ cat key.txt
 AAAAAAA.BBBBBB.-CCCCC
 ```
+## Dash
+- If you are using Anaconda and `conda` (recomended), create an environment for Dash
+```bash
+./install_dash.sh
+```
+- Otherwise, install Dash with `pip`:
+```bash
+pip install -r requirements.txt
+```
 
-# Usage
+# Usage - Dash App
+To start the Dash app:
+```bash
+ python app.py
+```
+Then navigate to the displayed IP address (e.g. `http://127.0.0.1:8050/`) in your web browser.
+
+# Usage - Command Line App
 To run the program and get a batch of random sample Vainglory game matches, simply run the following command:
 
 ```
-./get_stats.py
+./vainstats.py
 ```
 ## Lookup Player's Matches
 To look up the latest matches for a specific player, use the `-n` argument and supply the desired player's in-game name:
 
 ```
-./get_stats.py -n eLiza
+./vainstats.pyy -n eLiza
 ```
 
 ## Number of Days to Search
 By default, the program will search for player matches in the last day. To specify a different number of days to look back, add the `-d` argument:
 
 ```
-./get_stats.py -n eLiza -p 3 -d 10
+./vainstats.py -n eLiza -p 3 -d 10
 ```
 - NOTE: If no matches were found in the given time frame, a 404 error is returned. 
 
@@ -44,7 +61,7 @@ By default, the program will search for player matches in the last day. To speci
 By default, up to 3 results will be returned. To specify a different maximum number, use the `-p` argument:
 
 ```
-./get_stats.py -n eLiza -p 3 -d 10 -p 5
+./vainstats.py -n eLiza -p 3 -d 10 -p 5
 ```
 
 ## Match Lookup
@@ -52,21 +69,21 @@ By default, up to 3 results will be returned. To specify a different maximum num
 You can look up more information about a specific game match by using the `-m` argument and specifying the match ID:
 
 ```
-./get_stats.py -m 7a6fd762-29d8-11e7-a2d2-0667892d829e
+./vainstats.py -m 7a6fd762-29d8-11e7-a2d2-0667892d829e
 ```
 
 ## Fail Finder
 Player rankings (aka the 'Fail Finder') can be calculated by including the `--fail` argument along with a match ID:
 
 ```
-./get_stats.py -m 59d62746-2905-11e7-a2d2-0667892d829e --fail
+./vainstats.py -m 59d62746-2905-11e7-a2d2-0667892d829e --fail
 ```
 
 ## Options
 More specific match query criteria can be supplied with script arguments, such as:
 
 ```
-./get_stats.py -r <region> -n <player in-game name> -k /path/to/api_key.txt -p <number of results to return> -d <number of days to search> -m <match ID>
+./vainstats.py -r <region> -n <player in-game name> -k /path/to/api_key.txt -p <number of results to return> -d <number of days to search> -m <match ID>
 ```
 
 ## Example Output
@@ -75,7 +92,7 @@ More specific match query criteria can be supplied with script arguments, such a
 Searching for up to 3 matches played in the last day by player `eLiza`
 
 ```
-$ ./get_stats.py -n eLiza -p 3 -d 1
+$ ./vainstats.py -n eLiza -p 3 -d 1
 Player name: eLiza
 Region: North America
 Retrieving player data...
@@ -345,7 +362,7 @@ eLiza                 *Skaarf*           lost     -78.5654249609      c8e90cbc-f
 To also output the exact Python query commands for reproducibility, you can use `--debug`:
 
 ```
-$ ./get_stats.py -n eLiza -m 7c12bc86-2a89-11e7-a2d2-0667892d829e --debug
+$ ./vainstats.py -n eLiza -m 7c12bc86-2a89-11e7-a2d2-0667892d829e --debug
 Player name: eLiza
 Region: North America
 Retrieving player data...
@@ -387,7 +404,7 @@ This is useful if you need to copy/paste the Python commands elsewhere.
 For even more debugging, you can enter 'interactive' mode with `-i` in order to start an interactive Python session immediately after retrieving query results
 
 ```
-$ ./get_stats.py -i
+$ ./vainstats.py -i
 Player name: None
 Region: North America
 Retrieving player data...
@@ -419,4 +436,5 @@ Type "help", "copyright", "credits" or "license" for more information.
 ```
 
 # Software
-Developed under Python 2.7. Might also work with 2.6 and 3+ (untested)
+- Dash app developed & tested with Python 3.6
+- `vainstats.py` Developed under Python 2.7 and tested with 2.7 and 3.6
