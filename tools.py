@@ -1,6 +1,10 @@
 '''
 General utility functions to use in the app
 '''
+import dash_html_components as html
+
+import logging
+logger = logging.getLogger(__name__)
 
 def my_debugger(vars):
     '''
@@ -38,6 +42,7 @@ def load_json(input_file):
     Load JSON from a file
     '''
     import json
+    logger.debug("Loading data from JSON")
     with open(input_file,"r") as f:
         my_item = json.load(f)
     return(my_item)

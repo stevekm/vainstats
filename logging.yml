@@ -26,3 +26,11 @@ loggers:
     level: DEBUG
     handlers: [console, main]
     propagate: true
+  parse:
+    level: DEBUG
+    handlers: [console, main]
+    propagate: true
+  tools:
+    level: DEBUG
+    handlers: [console, main]
+    propagate: true
