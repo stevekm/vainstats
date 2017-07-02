@@ -23,7 +23,12 @@ AAAAAAA.BBBBBB.-CCCCC
 ```bash
 ./install_dash.sh
 ```
-- Otherwise, install Dash with `pip`:
+- You can activate your new Dash `conda` environment with:
+```bash
+source activate_dash.sh
+```
+
+- If you're not using `conda`, simply install Dash with `pip`:
 ```bash
 pip install -r requirements.txt
 ```
