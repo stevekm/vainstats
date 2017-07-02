@@ -19,8 +19,9 @@ $ cat key.txt
 AAAAAAA.BBBBBB.-CCCCC
 ```
 ## Dash
-- If you are using Anaconda and `conda` (recomended), create an environment for Dash
+- If you are using Anaconda and `conda` (recomended), make sure that you have installed `pip` in your `conda`, and create an environment for Dash with the supplied script
 ```bash
+conda install pip
 ./install_dash.sh
 ```
 - You can activate your new Dash `conda` environment with:
