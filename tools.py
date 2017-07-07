@@ -4,7 +4,7 @@ General utility functions to use in the app
 import dash_html_components as html
 
 import logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("tools")
 
 def my_debugger(vars):
     '''
@@ -23,19 +23,6 @@ def my_debugger(vars):
     shell = code.InteractiveConsole(vars)
     shell.interact()
 
-def log_setup(config_yaml, logger_name):
-    '''
-    Set up the logger for the script
-    config = path to YAML config file
-    '''
-    import yaml
-    import logging
-    import logging.config
-    # Config file relative to this file
-    loggingConf = open(config_yaml, 'r')
-    logging.config.dictConfig(yaml.load(loggingConf))
-    loggingConf.close()
-    return(logging.getLogger(logger_name))
 
 def load_json(input_file):
     '''
@@ -59,7 +46,7 @@ def get_api_key(keyfile = "api_keys/key.txt"):
 
 def html_df_table(df, max_rows = 10):
     '''
-    Return HTML
+    Return HTML table to display on the app webpage
     '''
     return(
     html.Table(

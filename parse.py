@@ -2,7 +2,7 @@
 Functions for parsing payload data
 '''
 import logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("parse")
 
 def get_match(data, match_id):
     '''

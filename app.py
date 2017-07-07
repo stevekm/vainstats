@@ -5,9 +5,28 @@
 Dash app for the vainstats API querying and player ranking
 '''
 
+# ~~~~~ LOGGING SETUP ~~~~~ #
+# set up the first logger for the app
+import os
+import log as vlog
+# path to the current script's dir
+scriptdir = os.path.dirname(os.path.realpath(__file__))
+
+def logpath():
+    '''
+    Return the path to the main log file; needed by the logging.yml
+    use this for dynamic output log file paths & names
+    '''
+    global scriptdir
+    return(vlog.logpath(scriptdir = scriptdir, logfile = 'log.txt'))
+
+config_yaml = os.path.join(scriptdir,'logging.yml')
+logger = vlog.log_setup(config_yaml = config_yaml, logger_name = "app")
+logger.debug("App is starting...")
+# ~~~~~~~~~~ #
+
 # ~~~~~ LIBRARIES ~~~~~ #
 # system modules
-import os
 import sys
 import gamelocker
 
@@ -19,38 +38,13 @@ from dash.dependencies import Input, Output
 import plotly.graph_objs as go
 import pandas as pd
 
-# this app modules
+# app modules
 import tools as vt
 import parse as vp
 import data as vd
 
-# logging modules
-import yaml
-import logging
-import logging.config
-
-
-# ~~~~~ LOGGING SETUP ~~~~~ #
-# path to the current script's dir
-scriptdir = os.path.dirname(os.path.realpath(__file__))
-
-def logpath():
-    '''
-    Return the path to the main log file; needed by the logging.yml
-    use this for dynamic output log file paths & names
-    '''
-    global scriptdir
-    log_file = os.path.join(scriptdir, 'log.txt')
-    return(logging.FileHandler(log_file))
-
-config_yaml = os.path.join(scriptdir,'logging.yml')
-logger = vt.log_setup(config_yaml = config_yaml, logger_name = "app")
-logger.debug("App is starting...")
-
 
 # ~~~~ SETUP ~~~~~~ #
-available_matches = [x['id'] for x in vd.demo_data['data']]
-
 app = dash.Dash()
 
 
@@ -69,7 +63,7 @@ app.layout = html.Div([
             html.H2(children = 'Pick a Match from the demo list:'),
             dcc.Dropdown(
                 id = 'dict-key',
-                options = [{'label': '{0}: {1}'.format(i + 1, match), 'value': match} for i, match in enumerate(available_matches)]
+                options = [{'label': '{0}: {1}'.format(i + 1, match), 'value': match} for i, match in enumerate(vd.demo_matches)]
             )
             ],
         style = {'width': '48%', 'display': 'inline-block'}
@@ -79,6 +73,9 @@ app.layout = html.Div([
     # second sub-div
     html.H4(children='Match Stats'),
     html.Div(id = 'roster-table'),
+    html.Div([
+        # dcc.Graph(id='demo-roster-gold-plot', animate=True),
+    ]),
 
     # third sub div
     html.Div([
@@ -125,13 +122,34 @@ def update_roster_table(input_value, max_rows=10):
 
         logger.debug("Making roster df")
         roster_df_list = [pd.DataFrame.from_dict(item['attributes']['stats'], orient='index') for item in rosters]
-        roster_df = pd.concat(roster_df_list, axis=1).transpose()
+        vd.roster_df = pd.concat(roster_df_list, axis=1).transpose()
 
-        logger.debug(roster_df)
+        logger.debug(vd.roster_df)
 
-        return(vt.html_df_table(df = roster_df))
+        return(vt.html_df_table(df = vd.roster_df))
     else:
         return('No match selected')
+
+# @app.callback(
+#     Output(component_id = 'demo-roster-gold-plot', component_property = 'figure'),
+#     [Input(component_id = 'dict-key', component_property = 'value')]
+# )
+# def update_demo_roster_gold_plot(input_value, max_rows=10):
+#     logger.debug("Updating input value: {0}".format(input_value))
+#     if input_value != None:
+#         match_id = input_value
+#         logger.debug("Match id: {0}".format(match_id))
+#
+#         logger.debug("Retreiving specified match from data set")
+#         match = vp.get_glmatch(data = matches, match_id = match_id)
+#
+#         logger.debug("Making roster df")
+#         roster_df_list = [pd.DataFrame.from_dict(item.stats, orient='index') for item in match.rosters]
+#         roster_df = pd.concat(roster_df_list, axis=1).transpose()
+#
+#         logger.debug(roster_df)
+#     else:
+#         return('No match selected')
 
 @app.callback(
     Output(component_id = 'global-data', component_property = 'children'),

@@ -8,11 +8,11 @@ import parse as vp
 import gamelocker
 
 import logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("data")
 
 logger.debug("Loading demo data")
 demo_data = vt.load_json(input_file = "demo-data.txt")
-
+demo_matches = [x['id'] for x in demo_data['data']]
 
 logger.debug("Reading API key from file")
 key = vt.get_api_key(keyfile = "key.txt")
