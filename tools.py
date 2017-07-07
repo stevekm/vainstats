@@ -46,3 +46,29 @@ def load_json(input_file):
     with open(input_file,"r") as f:
         my_item = json.load(f)
     return(my_item)
+
+def get_api_key(keyfile = "api_keys/key.txt"):
+    '''
+    Extract the API key string from the first line of the give text file
+    '''
+    with open(keyfile, "r") as f:
+        keys = []
+        for line in f:
+            keys.append(line.strip())
+    return(keys[0])
+
+def html_df_table(df, max_rows = 10):
+    '''
+    Return HTML
+    '''
+    return(
+    html.Table(
+    # Header
+    [html.Tr([html.Th(col) for col in df.columns])] +
+
+    # Body
+    [html.Tr([
+        html.Td(df.iloc[i][col]) for col in df.columns
+    ]) for i in range(min(len(df), max_rows))]
+    )
+    )

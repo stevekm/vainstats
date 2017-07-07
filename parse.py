@@ -37,3 +37,13 @@ def get_rosters(roster_ids, data):
                 if item['id'] == id:
                     rosters.append(item)
     return(rosters)
+
+
+def get_glmatch(data, match_id):
+    '''
+    Find the matching gamelocker match
+    '''
+    logger.debug('Searching for match_id in data')
+    for item in data:
+        if item.id == match_id:
+            return(item)

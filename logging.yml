@@ -24,13 +24,17 @@ handlers:
 loggers:
   app:
     level: DEBUG
-    handlers: [console, main]
+    handlers: [console]
     propagate: true
   parse:
     level: DEBUG
-    handlers: [console, main]
+    handlers: [console]
     propagate: true
   tools:
     level: DEBUG
-    handlers: [console, main]
+    handlers: [console]
+    propagate: true
+  data:
+    level: DEBUG
+    handlers: [console]
     propagate: true
