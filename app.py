@@ -129,18 +129,7 @@ def update_roster_table(input_value, max_rows=10):
 
         logger.debug(roster_df)
 
-        return(
-        vt.html_df_table(df = roster_df, max_rows = 10)
-        # html.Table(
-        # # Header
-        # [html.Tr([html.Th(col) for col in roster_df.columns])] +
-        #
-        # # Body
-        # [html.Tr([
-        #     html.Td(roster_df.iloc[i][col]) for col in roster_df.columns
-        # ]) for i in range(min(len(roster_df), max_rows))]
-        # )
-    )
+        return(vt.html_df_table(df = roster_df))
     else:
         return('No match selected')
 
@@ -174,7 +163,7 @@ def update_api_roster_table(input_value, max_rows=10):
 
         logger.debug(roster_df)
 
-        return(vt.html_df_table(df = roster_df, max_rows = 10))
+        return(vt.html_df_table(df = roster_df))
     else:
         return('No match selected')
 

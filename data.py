@@ -18,6 +18,6 @@ logger.debug("Reading API key from file")
 key = vt.get_api_key(keyfile = "key.txt")
 logger.debug("Querying API for game data")
 api = gamelocker.Gamelocker(key).Vainglory()
-matches = api.matches({"page[limit]": 3}) #  "filter[playerNames]": "TheLegend27"
+matches = api.matches({"page[limit]": 5}) #  "filter[playerNames]": "TheLegend27"
 
 api_matches = [x.id for x in matches]
