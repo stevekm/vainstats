@@ -23,7 +23,7 @@ def logpath():
 config_yaml = os.path.join(scriptdir,'logging.yml')
 logger = vlog.log_setup(config_yaml = config_yaml, logger_name = "app")
 logger.debug("App is starting...")
-# ~~~~~~~~~~ #
+
 
 # ~~~~~ LIBRARIES ~~~~~ #
 # system modules
@@ -48,12 +48,9 @@ import data as vd
 app = dash.Dash()
 
 
-
 # ~~~~ APP UI ~~~~~~ #
 # main div
 app.layout = html.Div([
-    # invisible div placeholder
-    html.Div(id = 'global-data'),
     # main heading
     html.H1(children = 'Welcome to vainstats - VainGlory game match stats & player ranking!'),
     # first sub-div
@@ -63,7 +60,8 @@ app.layout = html.Div([
             html.H2(children = 'Pick a Match from the demo list:'),
             dcc.Dropdown(
                 id = 'dict-key',
-                options = [{'label': '{0}: {1}'.format(i + 1, match), 'value': match} for i, match in enumerate(vd.demo_matches)]
+                options = [{'label': '{0}: {1}'.format(i + 1, match), 'value': match} for i, match in enumerate(vd.demo_matches)],
+                value = vd.demo_matches[0]
             )
             ],
         style = {'width': '48%', 'display': 'inline-block'}
@@ -102,7 +100,7 @@ app.layout = html.Div([
     Output(component_id = 'roster-table', component_property = 'children'),
     [Input(component_id = 'dict-key', component_property = 'value')]
 )
-def update_roster_table(input_value, max_rows=10):
+def update_roster_table(input_value):
     logger.debug("Updating input value: {0}".format(input_value))
     if input_value != None:
         match_id = input_value
@@ -134,49 +132,46 @@ def update_roster_table(input_value, max_rows=10):
 #     Output(component_id = 'demo-roster-gold-plot', component_property = 'figure'),
 #     [Input(component_id = 'dict-key', component_property = 'value')]
 # )
-# def update_demo_roster_gold_plot(input_value, max_rows=10):
+# def update_demo_roster_gold_plot(input_value):
 #     logger.debug("Updating input value: {0}".format(input_value))
 #     if input_value != None:
 #         match_id = input_value
 #         logger.debug("Match id: {0}".format(match_id))
 #
 #         logger.debug("Retreiving specified match from data set")
-#         match = vp.get_glmatch(data = matches, match_id = match_id)
+#         match = vp.get_match(data = vd.demo_data, match_id = match_id)
+#
+#         logger.debug("Getting roster ids for the match")
+#         rosters_ids = vp.get_roster_ids(match = match)
+#         logger.debug("Roster ids: {0}".format(rosters_ids))
+#
+#         logger.debug("Getting rosters for the match")
+#         rosters = vp.get_rosters(roster_ids = rosters_ids, data = vd.demo_data)
+#         for item in rosters:
+#             logger.debug(item)
 #
 #         logger.debug("Making roster df")
-#         roster_df_list = [pd.DataFrame.from_dict(item.stats, orient='index') for item in match.rosters]
-#         roster_df = pd.concat(roster_df_list, axis=1).transpose()
+#         roster_df_list = [pd.DataFrame.from_dict(item['attributes']['stats'], orient='index') for item in rosters]
+#         vd.roster_df = pd.concat(roster_df_list, axis=1).transpose()
 #
-#         logger.debug(roster_df)
+#         logger.debug(vd.roster_df)
 #     else:
 #         return('No match selected')
 
-@app.callback(
-    Output(component_id = 'global-data', component_property = 'children'),
-    [Input(component_id = 'selected-api-match-id', component_property = 'value')]
-)
-def set_api_match(input_value):
-    '''
-    Set the API match object based on the selected match
-    '''
-    logger.debug("Setting global match from selected-api-match-id value: {0}".format(input_value))
-    if input_value != None:
-        match_id = input_value
-        logger.debug("Match id: {0}".format(match_id))
-
-        logger.debug("Retreiving specified match from data set")
-        vd.match = vp.get_glmatch(data = vd.matches, match_id = match_id)
-    return()
 
 @app.callback(
     Output(component_id = 'api-roster-table', component_property = 'children'),
     [Input(component_id = 'selected-api-match-id', component_property = 'value')]
 )
-def update_api_roster_table(input_value, max_rows=10):
-    logger.debug("Updating selected-api-match-id value: {0}".format(input_value))
-    if hasattr(vd, 'match'):
+def update_api_roster_table(input_value):
+    if input_value != None:
+        logger.debug("Updating selected-api-match-id value: {0}".format(input_value))
+        match_id = input_value
+        logger.debug("Match id: {0}".format(match_id))
+        logger.debug("Retreiving specified match from data set")
+        match = vp.get_glmatch(data = vd.matches, match_id = match_id)
         logger.debug("Making roster df")
-        roster_df_list = [pd.DataFrame.from_dict(item.stats, orient='index') for item in vd.match.rosters]
+        roster_df_list = [pd.DataFrame.from_dict(item.stats, orient='index') for item in match.rosters]
         roster_df = pd.concat(roster_df_list, axis=1).transpose()
 
         logger.debug(roster_df)
