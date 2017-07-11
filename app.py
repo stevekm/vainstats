@@ -4,7 +4,6 @@
 '''
 Dash app for the vainstats API querying and player ranking
 '''
-
 # ~~~~~ LOGGING SETUP ~~~~~ #
 # set up the first logger for the app
 import os
@@ -37,7 +36,6 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 import plotly.graph_objs as go
 import plotly.plotly as py
-# import plotly.offline
 import pandas as pd
 
 # app modules
@@ -46,7 +44,7 @@ import parse as vp
 import data as vd
 
 
-# ~~~~ SETUP ~~~~~~ #
+# ~~~~ APP SETUP ~~~~~~ #
 app = dash.Dash()
 
 
@@ -55,177 +53,147 @@ app = dash.Dash()
 app.layout = html.Div([
     # main heading
     html.H1(children = 'Welcome to vainstats - VainGlory game match stats & player ranking!'),
-    # first sub-div
+    # Demo data section
     html.Div([
         # first sub-sub-div
         html.Div([
             html.H2(children = 'Pick a Match from the demo list:'),
             dcc.Dropdown(
-                id = 'dict-key',
+                id = 'demo-match-selection',
                 options = [{'label': '{0}: {1}'.format(i + 1, match), 'value': match} for i, match in enumerate(vd.demo_matches)],
                 value = vd.demo_matches[0]
             ),
             html.H2(children = 'Roster Plot'),
             html.H3(children = 'Pick a Plot type:'),
-            dcc.RadioItems(id='plot-type'),
+            dcc.RadioItems(id='demo-plot-type'),
             ],
         style = {'width': '48%', 'display': 'inline-block'}
         ),
+
+        # second sub-div
+        html.H4(children='Match Roster Stats'),
+        html.Div(id = 'demo-roster-table'),
+        html.Div([
+            dcc.Graph(id='demo-roster-gold-plot'),
+        ]),
     ]),
 
-    # second sub-div
-    html.H4(children='Match Stats'),
-    html.Div(id = 'roster-table'),
-    html.Div([
-        dcc.Graph(id='demo-roster-gold-plot'),
-    ]),
-
-    # third sub div
+    # API data section
     html.Div([
         # first sub-sub-div
         html.Div([
             html.H2(children = 'API Queried Matches:'),
             dcc.Dropdown(
-                id = 'selected-api-match-id',
+                id = 'api-match-selection',
                 options = [{'label': '{0}: {1}'.format(i + 1, match), 'value': match} for i, match in enumerate(vd.api_matches)]
                 ,
                 value = vd.api_matches[0]
-            )
+            ),
+            html.H2(children = 'Roster Plot'),
+            html.H3(children = 'Pick a Plot type:'),
+            dcc.RadioItems(id='api-plot-type'),
             ],
         style = {'width': '48%', 'display': 'inline-block'}
         ),
-        html.H4(children='Match Stats'),
-        html.Div(id = 'api-roster-table')
+
+        html.H4(children='Match Roster Stats'),
+        html.Div(id = 'api-roster-table'),
+        html.Div([
+            dcc.Graph(id='api-roster-plot'),
+        ]),
     ])
 ])
 
 
+
 # ~~~~ APP SERVER ~~~~~~ #
-def make_demo_roster_df(match_id):
-    '''
-    Return a df for the roster of a given match
-    '''
-    logger.debug("Match id: {0}".format(match_id))
-    logger.debug("Retreiving specified match from data set")
-    match = vp.get_match(data = vd.demo_data, match_id = match_id)
-    logger.debug("Getting roster ids for the match")
-    rosters_ids = vp.get_roster_ids(match = match)
-    logger.debug("Roster ids: {0}".format(rosters_ids))
-    logger.debug("Getting rosters for the match")
-    rosters = vp.get_rosters(roster_ids = rosters_ids, data = vd.demo_data)
-    for item in rosters:
-        logger.debug(item)
-    logger.debug("Making roster df")
-    roster_df_list = [pd.DataFrame.from_dict(item['attributes']['stats'], orient='index') for item in rosters]
-    roster_df = pd.concat(roster_df_list, axis=1).transpose()
-    logger.debug(roster_df)
-    return(roster_df)
 
-def make_api_roster_df(match_id):
-    '''
-    Return a df for the roster of an API quieried match
-    '''
-    logger.debug("Match id: {0}".format(match_id))
-    logger.debug("Retreiving specified match from data set")
-    match = vp.get_glmatch(data = vd.matches, match_id = match_id)
-    logger.debug("Making roster df")
-    roster_df_list = [pd.DataFrame.from_dict(item.stats, orient='index') for item in match.rosters]
-    roster_df = pd.concat(roster_df_list, axis=1).transpose()
-    logger.debug(roster_df)
-    return(roster_df)
-
-
-def roster_df_plot(roster_df, plot_type):
-    '''
-    Returns a plot for a provided roster_df, where plot_type is a column names in the df that isn't side;
-    example df:
-    >>> roster_df
-      acesEarned   gold heroKills krakenCaptures       side turretKills  \
-    0          0  27699         2              0  right/red           0
-    0          0  28608         8              0  left/blue           2
-
-      turretsRemaining
-    0                3
-    0                5
-    '''
-    marker=dict(
-        color=['rgba(204,204,204,1)', 'rgba(222,45,38,0.8)',
-               'rgba(204,204,204,1)', 'rgba(204,204,204,1)',
-               'rgba(204,204,204,1)'])
-    color_key = {
-    'right/red': 'red',
-    'left/blue': 'blue'
-    }
-    colors = []
-    for side in roster_df['side'].tolist():
-        if side in color_key.keys():
-            colors.append(color_key[side])
-    if len(colors) == len(roster_df['side'].tolist()):
-        return({
-        'data': [go.Bar(x = roster_df['side'], y = roster_df[plot_type], marker = dict(color = colors))]
-        })
-    else:
-        return({
-        'data': [go.Bar(x = roster_df['side'], y = roster_df[plot_type])]
-        })
-
+# demo data
 @app.callback(
-    Output(component_id = 'roster-table', component_property = 'children'),
-    [Input(component_id = 'dict-key', component_property = 'value')]
+    Output(component_id = 'demo-roster-table', component_property = 'children'),
+    [Input(component_id = 'demo-match-selection', component_property = 'value')]
 )
 def update_roster_table(input_value):
     logger.debug("Updating input value: {0}".format(input_value))
     if input_value != None:
         match_id = input_value
-        roster_df = make_demo_roster_df(match_id = match_id)
+        roster_df = vd.make_demo_roster_df(match_id = match_id)
         return(vt.html_df_table(df = roster_df))
     else:
         return('No match selected')
 
 @app.callback(
-    dash.dependencies.Output('plot-type', 'options'),
-    [dash.dependencies.Input('dict-key', 'value')])
+    dash.dependencies.Output('demo-plot-type', 'options'),
+    [dash.dependencies.Input('demo-match-selection', 'value')])
 def set_demo_plot_options(input_value):
     match_id = input_value
-    roster_df = make_demo_roster_df(match_id = match_id)
+    roster_df = vd.make_demo_roster_df(match_id = match_id)
     plot_types = [c for c in roster_df.columns if c != 'side']
     return [{'label': i, 'value': i} for i in plot_types]
 
 @app.callback(
-    dash.dependencies.Output('plot-type', 'value'),
-    [dash.dependencies.Input('dict-key', 'value')])
+    dash.dependencies.Output('demo-plot-type', 'value'),
+    [dash.dependencies.Input('demo-match-selection', 'value')])
 def set_demo_plot_value(input_value):
     match_id = input_value
-    roster_df = make_demo_roster_df(match_id = match_id)
+    roster_df = vd.make_demo_roster_df(match_id = match_id)
     plot_types = [c for c in roster_df.columns if c != 'side']
     return(plot_types[0])
 
 @app.callback(
     Output(component_id = 'demo-roster-gold-plot', component_property = 'figure'),
-    [Input(component_id = 'dict-key', component_property = 'value'),
-    Input(component_id = 'plot-type', component_property = 'value')]
+    [Input(component_id = 'demo-match-selection', component_property = 'value'),
+    Input(component_id = 'demo-plot-type', component_property = 'value')]
 )
 def update_demo_roster_gold_plot(input_value, plot_type):
     logger.debug("Updating input value: {0}".format(input_value))
     if input_value != None:
         match_id = input_value
-        roster_df = make_demo_roster_df(match_id = match_id)
-        return(roster_df_plot(roster_df = roster_df, plot_type = plot_type))
+        roster_df = vd.make_demo_roster_df(match_id = match_id)
+        return(vt.roster_df_plot(roster_df = roster_df, plot_type = plot_type))
     else:
         return('No match selected')
 
 
-
+# api data
 @app.callback(
     Output(component_id = 'api-roster-table', component_property = 'children'),
-    [Input(component_id = 'selected-api-match-id', component_property = 'value')]
+    [Input(component_id = 'api-match-selection', component_property = 'value')]
 )
-def update_api_roster_table(input_value):
-    if input_value != None:
-        logger.debug("Updating selected-api-match-id value: {0}".format(input_value))
-        match_id = input_value
-        roster_df = make_api_roster_df(match_id = match_id)
+def update_api_roster_table(match_id):
+    if match_id != None:
+        logger.debug("Updating selected-api-match-id value: {0}".format(match_id))
+        roster_df = vd.make_api_roster_df(match_id = match_id)
         return(vt.html_df_table(df = roster_df))
+    else:
+        return('No match selected')
+
+@app.callback(
+    Output(component_id = 'api-plot-type', component_property = 'options'),
+    [Input(component_id = 'api-match-selection', component_property = 'value')])
+def set_demo_plot_options(match_id):
+    roster_df = vd.make_api_roster_df(match_id = match_id)
+    plot_types = [c for c in roster_df.columns if c != 'side']
+    return [{'label': i, 'value': i} for i in plot_types]
+
+@app.callback(
+    Output(component_id = 'api-plot-type', component_property = 'value'),
+    [Input(component_id = 'api-match-selection', component_property = 'value')])
+def set_demo_plot_value(match_id):
+    roster_df = vd.make_api_roster_df(match_id = match_id)
+    plot_types = [c for c in roster_df.columns if c != 'side']
+    return(plot_types[0])
+
+@app.callback(
+    Output(component_id = 'api-roster-plot', component_property = 'figure'),
+    [Input(component_id = 'api-match-selection', component_property = 'value'),
+    Input(component_id = 'api-plot-type', component_property = 'value')]
+)
+def update_demo_roster_gold_plot(match_id, plot_type):
+    logger.debug("Updating input value: {0}".format(match_id))
+    if match_id != None:
+        roster_df = vd.make_api_roster_df(match_id = match_id)
+        return(vt.roster_df_plot(roster_df = roster_df, plot_type = plot_type))
     else:
         return('No match selected')
 

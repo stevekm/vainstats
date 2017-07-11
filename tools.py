@@ -2,11 +2,22 @@
 # -*- coding: utf-8 -*-
 '''
 General utility functions to use in the app
+and functions for generating app components
 '''
-import dash_html_components as html
-
 import logging
 logger = logging.getLogger("tools")
+
+# dash modules
+import dash
+import dash_core_components as dcc
+import dash_html_components as html
+from dash.dependencies import Input, Output
+import plotly.graph_objs as go
+import plotly.plotly as py
+import pandas as pd
+
+# app modules
+import parse as vp
 
 def my_debugger(vars):
     '''
@@ -61,3 +72,37 @@ def html_df_table(df, max_rows = 10):
     ]) for i in range(min(len(df), max_rows))]
     )
     )
+
+def roster_df_plot(roster_df, plot_type):
+    '''
+    Returns a plot for a provided roster_df, where plot_type is a column names in the df that isn't 'side';
+    example df:
+    >>> roster_df
+      acesEarned   gold heroKills krakenCaptures       side turretKills  \
+    0          0  27699         2              0  right/red           0
+    0          0  28608         8              0  left/blue           2
+
+      turretsRemaining
+    0                3
+    0                5
+    '''
+    marker=dict(
+        color=['rgba(204,204,204,1)', 'rgba(222,45,38,0.8)',
+               'rgba(204,204,204,1)', 'rgba(204,204,204,1)',
+               'rgba(204,204,204,1)'])
+    color_key = {
+    'right/red': 'red',
+    'left/blue': 'blue'
+    }
+    colors = []
+    for side in roster_df['side'].tolist():
+        if side in color_key.keys():
+            colors.append(color_key[side])
+    if len(colors) == len(roster_df['side'].tolist()):
+        return({
+        'data': [go.Bar(x = roster_df['side'], y = roster_df[plot_type], marker = dict(color = colors))]
+        })
+    else:
+        return({
+        'data': [go.Bar(x = roster_df['side'], y = roster_df[plot_type])]
+        })
