@@ -64,7 +64,14 @@ app.layout = html.Div([
                 id = 'dict-key',
                 options = [{'label': '{0}: {1}'.format(i + 1, match), 'value': match} for i, match in enumerate(vd.demo_matches)],
                 value = vd.demo_matches[0]
-            )
+            ),
+            # dcc.RadioItems(
+            #     id='plot-type',
+            #     options=[{'label': i, 'value': i} for i in ['Linear', 'Log']],
+            #     value='Linear',
+            #     labelStyle={'display': 'inline-block'}
+            # )
+            dcc.RadioItems(id='plot-type'),
             ],
         style = {'width': '48%', 'display': 'inline-block'}
         ),
@@ -74,7 +81,7 @@ app.layout = html.Div([
     html.H4(children='Match Stats'),
     html.Div(id = 'roster-table'),
     html.Div([
-        dcc.Graph(id='demo-roster-gold-plot', animate=True),
+        dcc.Graph(id='demo-roster-gold-plot'),
     ]),
 
     # third sub div
@@ -114,9 +121,9 @@ def make_demo_roster_df(match_id):
         logger.debug(item)
     logger.debug("Making roster df")
     roster_df_list = [pd.DataFrame.from_dict(item['attributes']['stats'], orient='index') for item in rosters]
-    vd.roster_df = pd.concat(roster_df_list, axis=1).transpose()
-    logger.debug(vd.roster_df)
-    return(vd.roster_df)
+    roster_df = pd.concat(roster_df_list, axis=1).transpose()
+    logger.debug(roster_df)
+    return(roster_df)
 
 def make_api_roster_df(match_id):
     '''
@@ -139,22 +146,41 @@ def update_roster_table(input_value):
     logger.debug("Updating input value: {0}".format(input_value))
     if input_value != None:
         match_id = input_value
-        vd.roster_df = make_demo_roster_df(match_id = match_id)
-        return(vt.html_df_table(df = vd.roster_df))
+        roster_df = make_demo_roster_df(match_id = match_id)
+        return(vt.html_df_table(df = roster_df))
     else:
         return('No match selected')
 
 @app.callback(
+    dash.dependencies.Output('plot-type', 'options'),
+    [dash.dependencies.Input('dict-key', 'value')])
+def set_demo_plot_options(input_value):
+    match_id = input_value
+    roster_df = make_demo_roster_df(match_id = match_id)
+    plot_types = [c for c in roster_df.columns if c != 'side']
+    return [{'label': i, 'value': i} for i in plot_types]
+
+@app.callback(
+    dash.dependencies.Output('plot-type', 'value'),
+    [dash.dependencies.Input('dict-key', 'value')])
+def set_demo_plot_value(input_value):
+    match_id = input_value
+    roster_df = make_demo_roster_df(match_id = match_id)
+    plot_types = [c for c in roster_df.columns if c != 'side']
+    return(plot_types[0])
+
+@app.callback(
     Output(component_id = 'demo-roster-gold-plot', component_property = 'figure'),
-    [Input(component_id = 'dict-key', component_property = 'value')]
+    [Input(component_id = 'dict-key', component_property = 'value'),
+    Input(component_id = 'plot-type', component_property = 'value')]
 )
-def update_demo_roster_gold_plot(input_value):
+def update_demo_roster_gold_plot(input_value, plot_type):
     logger.debug("Updating input value: {0}".format(input_value))
     if input_value != None:
         match_id = input_value
-        vd.roster_df = make_demo_roster_df(match_id = match_id)
+        roster_df = make_demo_roster_df(match_id = match_id)
         return({
-        'data': [go.Bar(x = vd.roster_df['side'], y = vd.roster_df['gold'])]
+        'data': [go.Bar(x = roster_df['side'], y = roster_df[plot_type])]
         })
     else:
         return('No match selected')
