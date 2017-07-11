@@ -65,12 +65,8 @@ app.layout = html.Div([
                 options = [{'label': '{0}: {1}'.format(i + 1, match), 'value': match} for i, match in enumerate(vd.demo_matches)],
                 value = vd.demo_matches[0]
             ),
-            # dcc.RadioItems(
-            #     id='plot-type',
-            #     options=[{'label': i, 'value': i} for i in ['Linear', 'Log']],
-            #     value='Linear',
-            #     labelStyle={'display': 'inline-block'}
-            # )
+            html.H2(children = 'Roster Plot'),
+            html.H3(children = 'Pick a Plot type:'),
             dcc.RadioItems(id='plot-type'),
             ],
         style = {'width': '48%', 'display': 'inline-block'}
@@ -138,6 +134,41 @@ def make_api_roster_df(match_id):
     logger.debug(roster_df)
     return(roster_df)
 
+
+def roster_df_plot(roster_df, plot_type):
+    '''
+    Returns a plot for a provided roster_df, where plot_type is a column names in the df that isn't side;
+    example df:
+    >>> roster_df
+      acesEarned   gold heroKills krakenCaptures       side turretKills  \
+    0          0  27699         2              0  right/red           0
+    0          0  28608         8              0  left/blue           2
+
+      turretsRemaining
+    0                3
+    0                5
+    '''
+    marker=dict(
+        color=['rgba(204,204,204,1)', 'rgba(222,45,38,0.8)',
+               'rgba(204,204,204,1)', 'rgba(204,204,204,1)',
+               'rgba(204,204,204,1)'])
+    color_key = {
+    'right/red': 'red',
+    'left/blue': 'blue'
+    }
+    colors = []
+    for side in roster_df['side'].tolist():
+        if side in color_key.keys():
+            colors.append(color_key[side])
+    if len(colors) == len(roster_df['side'].tolist()):
+        return({
+        'data': [go.Bar(x = roster_df['side'], y = roster_df[plot_type], marker = dict(color = colors))]
+        })
+    else:
+        return({
+        'data': [go.Bar(x = roster_df['side'], y = roster_df[plot_type])]
+        })
+
 @app.callback(
     Output(component_id = 'roster-table', component_property = 'children'),
     [Input(component_id = 'dict-key', component_property = 'value')]
@@ -179,9 +210,7 @@ def update_demo_roster_gold_plot(input_value, plot_type):
     if input_value != None:
         match_id = input_value
         roster_df = make_demo_roster_df(match_id = match_id)
-        return({
-        'data': [go.Bar(x = roster_df['side'], y = roster_df[plot_type])]
-        })
+        return(roster_df_plot(roster_df = roster_df, plot_type = plot_type))
     else:
         return('No match selected')
 
