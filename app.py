@@ -33,7 +33,7 @@ import gamelocker
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State, Event
 import plotly.graph_objs as go
 import plotly.plotly as py
 import pandas as pd
@@ -53,6 +53,7 @@ app = dash.Dash()
 app.layout = html.Div([
     # main heading
     html.H1(children = 'Welcome to vainstats - VainGlory game match stats & player ranking!'),
+    html.Div(id = 'null-div'), # for empty returns in the app
     # Demo data section
     html.Div([
         # first sub-sub-div
@@ -89,6 +90,7 @@ app.layout = html.Div([
                 ,
                 value = vd.api_matches[0]
             ),
+            html.Button('Get New Matches', id='api-match-update-matches-button'),
             html.H2(children = 'Roster Plot'),
             html.H3(children = 'Pick a Plot type:'),
             dcc.RadioItems(id='api-plot-type'),
@@ -196,6 +198,29 @@ def update_demo_roster_gold_plot(match_id, plot_type):
         return(vt.roster_df_plot(roster_df = roster_df, plot_type = plot_type))
     else:
         return('No match selected')
+
+
+@app.callback(
+    Output(component_id = 'api-match-selection', component_property = 'options'),
+    events = [Event('api-match-update-matches-button', 'click')])
+def update_data():
+    '''
+    Update the matches that have been queried from the API
+    NOTE: doesnt update the default selected Button
+    NOTE: this might break with future Dash updates
+    '''
+    logger.debug("Querying the API for new matches;")
+    logger.debug("old matches:\n{0}".format(vd.api_matches))
+    vd.matches = vd.api.matches({"page[limit]": 5}) #  "filter[playerNames]": "TheLegend27"
+    vd.api_matches = [x.id for x in vd.matches]
+    logger.debug("new matches:\n{0}".format(vd.api_matches))
+    return([{'label': '{0}: {1}'.format(i + 1, match), 'value': match} for i, match in enumerate(vd.api_matches)])
+
+# @app.callback(
+#     Output(component_id = 'api-match-selection', component_property = 'value'),
+#     events = [Event('api-match-update-matches-button', 'click')])
+# def update_data_dropdown_default_value():
+#     return(vd.api_matches[0])
 
 
 if __name__ == '__main__':
