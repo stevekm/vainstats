@@ -59,11 +59,12 @@ app.layout = html.Div([
         # first sub-sub-div
         html.Div([
             html.H2(children = 'Pick a Match from the demo list:'),
-            dcc.Dropdown(
-                id = 'demo-match-selection',
-                options = [{'label': '{0}: {1}'.format(i + 1, match), 'value': match} for i, match in enumerate(vd.demo_matches)],
-                value = vd.demo_matches[0]
-            ),
+
+            # dropdown menu for the demo matches
+            html.Div(children = [
+            vt.match_dropdown(matches = vd.demo_matches, id = 'demo-match-selection')
+            ], id = 'demo-match-selection-div'),
+
             html.H2(children = 'Roster Plot'),
             html.H3(children = 'Pick a Plot type:'),
             dcc.RadioItems(id='demo-plot-type'),
@@ -84,12 +85,14 @@ app.layout = html.Div([
         # first sub-sub-div
         html.Div([
             html.H2(children = 'API Queried Matches:'),
-            dcc.Dropdown(
-                id = 'api-match-selection',
-                options = [{'label': '{0}: {1}'.format(i + 1, match), 'value': match} for i, match in enumerate(vd.api_matches)]
-                ,
-                value = vd.api_matches[0]
-            ),
+
+            # dropdown menu for the API matches
+            html.Div(children = [
+            vt.match_dropdown(matches = vd.api_matches, id = 'api-match-selection')
+            ],
+            id = 'api-match-selection-div'),
+
+
             html.Button('Get New Matches', id='api-match-update-matches-button'),
             html.H2(children = 'Roster Plot'),
             html.H3(children = 'Pick a Plot type:'),
@@ -201,26 +204,20 @@ def update_demo_roster_gold_plot(match_id, plot_type):
 
 
 @app.callback(
-    Output(component_id = 'api-match-selection', component_property = 'options'),
+    Output(component_id = 'api-match-selection-div', component_property = 'children'),
     events = [Event('api-match-update-matches-button', 'click')])
 def update_data():
     '''
     Update the matches that have been queried from the API
-    NOTE: doesnt update the default selected Button
-    NOTE: this might break with future Dash updates
+    Rebuild the dropdown selection menu div
+    NOTE: click events might break with future Dash updates
     '''
     logger.debug("Querying the API for new matches;")
     logger.debug("old matches:\n{0}".format(vd.api_matches))
     vd.matches = vd.api.matches({"page[limit]": 5}) #  "filter[playerNames]": "TheLegend27"
     vd.api_matches = [x.id for x in vd.matches]
     logger.debug("new matches:\n{0}".format(vd.api_matches))
-    return([{'label': '{0}: {1}'.format(i + 1, match), 'value': match} for i, match in enumerate(vd.api_matches)])
-
-# @app.callback(
-#     Output(component_id = 'api-match-selection', component_property = 'value'),
-#     events = [Event('api-match-update-matches-button', 'click')])
-# def update_data_dropdown_default_value():
-#     return(vd.api_matches[0])
+    return(vt.match_dropdown(matches = vd.api_matches, id = 'api-match-selection'))
 
 
 if __name__ == '__main__':
