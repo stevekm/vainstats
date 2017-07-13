@@ -60,34 +60,31 @@ app.layout = html.Div([
         html.Div([
             html.H2(children = 'Pick a Match from the demo list:'),
 
-            # dropdown menu for the demo matches
             html.Div(children = [
+            # dropdown menu for the demo matches
             vt.match_dropdown(matches = vd.demo_matches, id = 'demo-match-selection')
             ], id = 'demo-match-selection-div'),
 
             html.H2(children = 'Roster Plot'),
             html.H3(children = 'Pick a Plot type:'),
-            dcc.RadioItems(id='demo-plot-type'),
-            ],
-        style = {'width': '48%', 'display': 'inline-block'}
-        ),
+            dcc.RadioItems(id = 'demo-plot-type'),
 
-        # second sub-div
-        html.H4(children='Match Roster Stats'),
-        html.Div(id = 'demo-roster-table'),
-        html.Div([
-            dcc.Graph(id='demo-roster-gold-plot'),
-        ]),
+            html.H4(children = 'Match Roster Stats'),
+            html.Div(id = 'demo-roster-table'),
+            html.Div(children = [
+                dcc.Graph(id = 'demo-roster-gold-plot'),
+            ])
+            ], style = {'width': '48%', 'display': 'inline-block'}),
     ]),
 
     # API data section
-    html.Div([
+    html.Div(children = [
         # first sub-sub-div
-        html.Div([
+        html.Div(children = [
             html.H2(children = 'API Queried Matches:'),
 
-            # dropdown menu for the API matches
             html.Div(children = [
+            # dropdown menu for the API matches
             vt.match_dropdown(matches = vd.api_matches, id = 'api-match-selection')
             ],
             id = 'api-match-selection-div'),
@@ -97,15 +94,13 @@ app.layout = html.Div([
             html.H2(children = 'Roster Plot'),
             html.H3(children = 'Pick a Plot type:'),
             dcc.RadioItems(id='api-plot-type'),
-            ],
-        style = {'width': '48%', 'display': 'inline-block'}
-        ),
 
-        html.H4(children='Match Roster Stats'),
-        html.Div(id = 'api-roster-table'),
-        html.Div([
-            dcc.Graph(id='api-roster-plot'),
-        ]),
+            html.H4(children = 'Match Roster Stats'),
+            html.Div(id = 'api-roster-table'),
+            html.Div([
+                dcc.Graph(id = 'api-roster-plot'),
+            ])
+            ], style = {'width': '48%', 'display': 'inline-block'})
     ])
 ])
 
@@ -160,6 +155,10 @@ def update_demo_roster_gold_plot(input_value, plot_type):
         return('No match selected')
 
 
+
+
+
+
 # api data
 @app.callback(
     Output(component_id = 'api-roster-table', component_property = 'children'),
@@ -176,7 +175,7 @@ def update_api_roster_table(match_id):
 @app.callback(
     Output(component_id = 'api-plot-type', component_property = 'options'),
     [Input(component_id = 'api-match-selection', component_property = 'value')])
-def set_demo_plot_options(match_id):
+def set_api_plot_options(match_id):
     roster_df = vd.make_api_roster_df(match_id = match_id)
     plot_types = [c for c in roster_df.columns if c != 'side']
     return [{'label': i, 'value': i} for i in plot_types]
@@ -184,7 +183,7 @@ def set_demo_plot_options(match_id):
 @app.callback(
     Output(component_id = 'api-plot-type', component_property = 'value'),
     [Input(component_id = 'api-match-selection', component_property = 'value')])
-def set_demo_plot_value(match_id):
+def set_api_plot_value(match_id):
     roster_df = vd.make_api_roster_df(match_id = match_id)
     plot_types = [c for c in roster_df.columns if c != 'side']
     return(plot_types[0])
@@ -194,8 +193,8 @@ def set_demo_plot_value(match_id):
     [Input(component_id = 'api-match-selection', component_property = 'value'),
     Input(component_id = 'api-plot-type', component_property = 'value')]
 )
-def update_demo_roster_gold_plot(match_id, plot_type):
-    logger.debug("Updating input value: {0}".format(match_id))
+def update_api_roster_plot(match_id, plot_type):
+    logger.debug("Updating input value for plot: {0}".format(match_id))
     if match_id != None:
         roster_df = vd.make_api_roster_df(match_id = match_id)
         return(vt.roster_df_plot(roster_df = roster_df, plot_type = plot_type))
@@ -206,7 +205,7 @@ def update_demo_roster_gold_plot(match_id, plot_type):
 @app.callback(
     Output(component_id = 'api-match-selection-div', component_property = 'children'),
     events = [Event('api-match-update-matches-button', 'click')])
-def update_data():
+def update_api_data():
     '''
     Update the matches that have been queried from the API
     Rebuild the dropdown selection menu div
