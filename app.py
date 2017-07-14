@@ -62,7 +62,7 @@ app.layout = html.Div([
 
             html.Div(children = [
             # dropdown menu for the demo matches
-            vt.match_dropdown(matches = vd.demo_matches, id = 'demo-match-selection')
+            vt.match_dropdown(matches = vd.demo_matches, id = 'demo-match-selection', default_value = 'first')
             ], id = 'demo-match-selection-div'),
 
             html.H2(children = 'Roster Plot'),
@@ -137,10 +137,13 @@ def create_radio_buttons(options, id, value = None):
 )
 def update_roster_table(input_value):
     logger.debug("Updating input value: {0}".format(input_value))
+    # if vd.demo_roster_df == None:
+    #     return('No match selected')
+    # else:
     if input_value != None:
         match_id = input_value
-        roster_df = vd.make_demo_roster_df(match_id = match_id)
-        return(vt.html_df_table(df = roster_df))
+        vd.demo_roster_df = vd.make_demo_roster_df(match_id = match_id)
+        return(vt.html_df_table(df = vd.demo_roster_df))
     else:
         return('No match selected')
 
@@ -152,9 +155,11 @@ def update_demo_roster_plot_options(match_id):
     Rebuild the radio button component for the roster plot based on selected match
     '''
     logger.debug("Rebuilding radio buttons for plot selection for match: {0}".format(match_id))
-    roster_df = vd.make_demo_roster_df(match_id = match_id)
-
-    plot_types = [c for c in roster_df.columns if c != 'side']
+    # if vd.demo_roster_df == None:
+    #     return('No match selected')
+    # else:
+    vd.demo_roster_df = vd.make_demo_roster_df(match_id = match_id)
+    plot_types = [c for c in vd.demo_roster_df.columns if c != 'side']
     logger.debug("plot_types are: {0}".format(plot_types))
 
     plot_type_options = [{'label': i, 'value': i} for i in plot_types]
@@ -170,10 +175,13 @@ def update_demo_roster_plot_options(match_id):
 )
 def update_demo_roster_gold_plot(input_value, plot_type):
     logger.debug("Updating input value: {0}".format(input_value))
+    # if vd.demo_roster_df == None:
+    #     return('No match selected')
+    # else:
     if input_value != None:
         match_id = input_value
-        roster_df = vd.make_demo_roster_df(match_id = match_id)
-        return(vt.roster_df_plot(roster_df = roster_df, plot_type = plot_type))
+        vd.demo_roster_df = vd.make_demo_roster_df(match_id = match_id)
+        return(vt.roster_df_plot(roster_df = vd.demo_roster_df, plot_type = plot_type))
     else:
         return('No match selected')
 

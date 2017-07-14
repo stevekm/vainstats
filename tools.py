@@ -126,14 +126,25 @@ def roster_df_plot(roster_df, plot_type):
         'data': [go.Bar(x = roster_df['side'], y = roster_df[plot_type])]
         })
 
-def match_dropdown(matches, id):
+def match_dropdown(matches, id, default_value = 'first'):
     '''
     Return a dropdown menu object based on the supplied matches
     '''
-    return(
-    dcc.Dropdown(
-        id = id,
-        options = [{'label': '{0}: {1}'.format(i + 1, match), 'value': match} for i, match in enumerate(matches)],
-        value = matches[0]
-    )
-    )
+    if default_value == 'first':
+        return(dcc.Dropdown(
+            id = id,
+            options = [{'label': '{0}: {1}'.format(i + 1, match), 'value': match} for i, match in enumerate(matches)],
+            value = matches[0]))
+    elif default_value == 'last':
+        return(dcc.Dropdown(
+            id = id,
+            options = [{'label': '{0}: {1}'.format(i + 1, match), 'value': match} for i, match in enumerate(matches)],
+            value = matches[-1]))
+    elif default_value == None:
+        return(dcc.Dropdown(
+            id = id,
+            options = [{'label': '{0}: {1}'.format(i + 1, match), 'value': match} for i, match in enumerate(matches)]))
+    else:
+        return(dcc.Dropdown(
+            id = id,
+            options = [{'label': '{0}: {1}'.format(i + 1, match), 'value': match} for i, match in enumerate(matches)]))

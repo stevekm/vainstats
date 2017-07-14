@@ -29,12 +29,19 @@ logger.debug("Loading demo data")
 demo_data = vt.load_json(input_file = "demo-data.txt")
 demo_matches = [x['id'] for x in demo_data['data']]
 
+# placeholder for the roset df
+demo_roster_df = None
+
+
 # API data
 logger.debug("Reading API key from file")
 key = vt.get_api_key(keyfile = "key.txt")
 logger.debug("Querying API for game data")
 api = gamelocker.Gamelocker(key).Vainglory()
 matches = api.matches({"page[limit]": 5}) #  "filter[playerNames]": "TheLegend27"
+
+# placeholder for the roset df
+roster_df = None
 
 # vt.save_pydata(data = matches, outfile = "matches.pickle")
 
