@@ -67,7 +67,11 @@ app.layout = html.Div([
 
             html.H2(children = 'Roster Plot'),
             html.H3(children = 'Pick a Plot type:'),
-            dcc.RadioItems(id = 'demo-plot-type'),
+            # dcc.RadioItems(id = 'demo-plot-type'),
+            html.Div(children = [
+            dcc.RadioItems(id='demo-plot-type')
+            ],
+            id = 'demo-plot-type-div'),
 
             html.H4(children = 'Match Roster Stats'),
             html.Div(id = 'demo-roster-table'),
@@ -76,6 +80,7 @@ app.layout = html.Div([
             ])
             ], style = {'width': '48%', 'display': 'inline-block'}),
     ]),
+
 
     # API data section
     html.Div(children = [
@@ -93,7 +98,12 @@ app.layout = html.Div([
             html.Button('Get New Matches', id='api-match-update-matches-button'),
             html.H2(children = 'Roster Plot'),
             html.H3(children = 'Pick a Plot type:'),
-            dcc.RadioItems(id='api-plot-type'),
+
+            # buttons to choose plot data
+            html.Div(children = [
+            dcc.RadioItems(id='api-roster-plot-data-type-selection')
+            ],
+            id = 'api-roster-plot-data-div'),
 
             html.H4(children = 'Match Roster Stats'),
             html.Div(id = 'api-roster-table'),
@@ -107,6 +117,18 @@ app.layout = html.Div([
 
 
 # ~~~~ APP SERVER ~~~~~~ #
+
+
+def create_radio_buttons(options, id, value = None):
+    '''
+    Return a radio button component
+    options = [{'label': i, 'value': i} for i in plot_types]
+    '''
+    if value != None:
+        return(dcc.RadioItems(options = options, id = id, value = value))
+    else:
+        return(dcc.RadioItems(options = options, id = id))
+
 
 # demo data
 @app.callback(
@@ -123,22 +145,23 @@ def update_roster_table(input_value):
         return('No match selected')
 
 @app.callback(
-    dash.dependencies.Output('demo-plot-type', 'options'),
-    [dash.dependencies.Input('demo-match-selection', 'value')])
-def set_demo_plot_options(input_value):
-    match_id = input_value
+    Output(component_id = 'demo-plot-type-div', component_property = 'children'),
+    [Input(component_id = 'demo-match-selection', component_property = 'value')])
+def update_demo_roster_plot_options(match_id):
+    '''
+    Rebuild the radio button component for the roster plot based on selected match
+    '''
+    logger.debug("Rebuilding radio buttons for plot selection for match: {0}".format(match_id))
     roster_df = vd.make_demo_roster_df(match_id = match_id)
-    plot_types = [c for c in roster_df.columns if c != 'side']
-    return [{'label': i, 'value': i} for i in plot_types]
 
-@app.callback(
-    dash.dependencies.Output('demo-plot-type', 'value'),
-    [dash.dependencies.Input('demo-match-selection', 'value')])
-def set_demo_plot_value(input_value):
-    match_id = input_value
-    roster_df = vd.make_demo_roster_df(match_id = match_id)
     plot_types = [c for c in roster_df.columns if c != 'side']
-    return(plot_types[0])
+    logger.debug("plot_types are: {0}".format(plot_types))
+
+    plot_type_options = [{'label': i, 'value': i} for i in plot_types]
+    selected_plot_type = plot_types[-1] # last item, usually has values
+
+    logger.debug("selected_plot_type is: {0}".format(selected_plot_type))
+    return(create_radio_buttons(options = plot_type_options, id = 'demo-plot-type', value = selected_plot_type))
 
 @app.callback(
     Output(component_id = 'demo-roster-gold-plot', component_property = 'figure'),
@@ -173,25 +196,28 @@ def update_api_roster_table(match_id):
         return('No match selected')
 
 @app.callback(
-    Output(component_id = 'api-plot-type', component_property = 'options'),
+    Output(component_id = 'api-roster-plot-data-div', component_property = 'children'),
     [Input(component_id = 'api-match-selection', component_property = 'value')])
-def set_api_plot_options(match_id):
+def update_api_roster_plot_options(match_id):
+    '''
+    Rebuild the radio button component for the roster plot based on selected match
+    '''
+    logger.debug("Rebuilding radio buttons for plot selection for match: {0}".format(match_id))
     roster_df = vd.make_api_roster_df(match_id = match_id)
-    plot_types = [c for c in roster_df.columns if c != 'side']
-    return [{'label': i, 'value': i} for i in plot_types]
 
-@app.callback(
-    Output(component_id = 'api-plot-type', component_property = 'value'),
-    [Input(component_id = 'api-match-selection', component_property = 'value')])
-def set_api_plot_value(match_id):
-    roster_df = vd.make_api_roster_df(match_id = match_id)
     plot_types = [c for c in roster_df.columns if c != 'side']
-    return(plot_types[0])
+    logger.debug("plot_types are: {0}".format(plot_types))
+
+    plot_type_options = [{'label': i, 'value': i} for i in plot_types]
+    selected_plot_type = plot_types[-1] # last item, usually has values
+
+    logger.debug("selected_plot_type is: {0}".format(selected_plot_type))
+    return(create_radio_buttons(options = plot_type_options, id = 'api-roster-plot-data-type-selection', value = selected_plot_type))
 
 @app.callback(
     Output(component_id = 'api-roster-plot', component_property = 'figure'),
     [Input(component_id = 'api-match-selection', component_property = 'value'),
-    Input(component_id = 'api-plot-type', component_property = 'value')]
+    Input(component_id = 'api-roster-plot-data-type-selection', component_property = 'value')]
 )
 def update_api_roster_plot(match_id, plot_type):
     logger.debug("Updating input value for plot: {0}".format(match_id))

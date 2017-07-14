@@ -37,6 +37,25 @@ def my_debugger(vars):
     shell.interact()
 
 
+def save_pydata(data, outfile):
+    # save py data in pickle format
+    # USAGE: save_pydata(python_object, "my_file.pickle")
+    import pickle
+    with open(outfile, 'wb') as f:
+        # Pickle the 'data' dictionary using the highest protocol available.
+        logger.debug("Saving data to pickle, file is: {0}".format(outfile))
+        pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
+        logger.debug("Data saved to pickle successfully")
+
+def load_pydata(infile):
+    # open py pickle data
+    import pickle
+    with open(infile, 'rb') as f:
+        # The protocol version used is detected automatically, so we do not
+        # have to specify it.
+        data = pickle.load(f)
+    return(data)
+
 def load_json(input_file):
     '''
     Load JSON from a file

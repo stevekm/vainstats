@@ -36,6 +36,8 @@ logger.debug("Querying API for game data")
 api = gamelocker.Gamelocker(key).Vainglory()
 matches = api.matches({"page[limit]": 5}) #  "filter[playerNames]": "TheLegend27"
 
+# vt.save_pydata(data = matches, outfile = "matches.pickle")
+
 api_matches = [x.id for x in matches]
 
 # ~~~~~ DATA FUNCTIONS ~~~~~ #
