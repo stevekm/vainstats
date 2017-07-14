@@ -6,6 +6,8 @@ Functions for parsing payload data
 import logging
 logger = logging.getLogger("parse")
 
+
+# ~~~~~ JSON payload ~~~~~ #
 def get_match(data, match_id):
     '''
     Search a payload for a specific match
@@ -40,7 +42,7 @@ def get_rosters(roster_ids, data):
                     rosters.append(item)
     return(rosters)
 
-
+# ~~~~~ gamelocker ~~~~~ #
 def get_glmatch(data, match_id):
     '''
     Find the matching gamelocker match
@@ -49,3 +51,11 @@ def get_glmatch(data, match_id):
     for item in data:
         if item.id == match_id:
             return(item)
+
+def get_glmatch_roster_ids(rosters_list):
+    '''
+    Get the id's of the rosters in the roster list
+    '''
+    return([roster.id for roster in rosters_list])
+
+# def get_glmatch_roster(match, )
