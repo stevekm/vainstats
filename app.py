@@ -40,7 +40,6 @@ import pandas as pd
 
 # app modules
 import tools as vt
-import parse as vp
 import data as vd
 
 
@@ -117,8 +116,6 @@ app.layout = html.Div([
 
 
 # ~~~~ APP SERVER ~~~~~~ #
-
-
 def create_radio_buttons(options, id, value = None):
     '''
     Return a radio button component

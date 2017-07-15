@@ -16,9 +16,9 @@ import plotly.graph_objs as go
 import plotly.plotly as py
 import pandas as pd
 
-# app modules
-import parse as vp
 
+
+# ~~~~~ MISC ~~~~~ #
 def my_debugger(vars):
     '''
     Starts interactive Python terminal at location in script
@@ -76,6 +76,57 @@ def get_api_key(keyfile = "api_keys/key.txt"):
             keys.append(line.strip())
     return(keys[0])
 
+
+# ~~~~~ DEMO JSON DATA ~~~~~ #
+
+def get_match(data, match_id):
+    '''
+    Search a payload for a specific match
+    '''
+    logger.debug('Searching for match_id in data')
+    for item in data['data']:
+        if item['id'] == match_id:
+            return(item)
+
+def get_roster_ids(match):
+    '''
+    Get the roster IDs from a match list of dicts
+    '''
+    logger.debug('Searching for roster_ids in match')
+    roster_ids = []
+    for item in match['relationships']['rosters']['data']:
+        if item['type'] == 'roster':
+            roster_ids.append(item['id'])
+    return(roster_ids)
+
+def get_rosters(roster_ids, data):
+    '''
+    Get the team rosters for a match
+    '''
+    logger.debug('Searching for rosters in data')
+    rosters = []
+    # for item in match['relationships']['rosters']['data']:
+    for item in data['included']:
+        for id in roster_ids:
+            if item['type'] == 'roster':
+                if item['id'] == id:
+                    rosters.append(item)
+    return(rosters)
+
+
+
+# ~~~~~ API PAYLOAD DATA ~~~~~ #
+def get_glmatch(data, match_id):
+    '''
+    Find the matching gamelocker match
+    '''
+    logger.debug('Searching for match_id in data')
+    for item in data:
+        if item.id == match_id:
+            return(item)
+
+
+# ~~~~~ APP COMPONENTS ~~~~~ #
 def html_df_table(df, max_rows = 10):
     '''
     Return HTML table to display on the app webpage

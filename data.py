@@ -19,7 +19,6 @@ import pandas as pd
 
 # app modules
 import tools as vt
-import parse as vp
 import gamelocker
 
 # ~~~~~ DATA SETUP ~~~~~ #
@@ -55,12 +54,12 @@ def make_demo_roster_df(match_id):
     global demo_data
     logger.debug("Match id: {0}".format(match_id))
     logger.debug("Retreiving specified match from data set")
-    match = vp.get_match(data = demo_data, match_id = match_id)
+    match = vt.get_match(data = demo_data, match_id = match_id)
     logger.debug("Getting roster ids for the match")
-    rosters_ids = vp.get_roster_ids(match = match)
+    rosters_ids = vt.get_roster_ids(match = match)
     logger.debug("Roster ids: {0}".format(rosters_ids))
     logger.debug("Getting rosters for the match")
-    rosters = vp.get_rosters(roster_ids = rosters_ids, data = demo_data)
+    rosters = vt.get_rosters(roster_ids = rosters_ids, data = demo_data)
     for item in rosters:
         logger.debug(item)
     logger.debug("Making roster df")
@@ -76,7 +75,7 @@ def make_api_roster_df(match_id):
     global matches
     logger.debug("Match id: {0}".format(match_id))
     logger.debug("Retreiving specified match from data set")
-    match = vp.get_glmatch(data = matches, match_id = match_id)
+    match = vt.get_glmatch(data = matches, match_id = match_id)
     logger.debug("Making roster df")
     roster_df_list = [pd.DataFrame.from_dict(item.stats, orient='index') for item in match.rosters]
     roster_df = pd.concat(roster_df_list, axis=1).transpose()
