@@ -104,29 +104,38 @@ app.layout = html.Div([
             ],
             id = 'api-roster-plot-data-div'),
 
+            # match.gameMode
+            html.H2(children = 'Match Game Mode'),
+            html.Div(
+            id = 'api-match-gameMode-div'),
+
+            html.H3(children = 'Pick a team Roster:'),
+            html.Div(children = [
+            dcc.RadioItems(id='api-team-roster-selection')
+            ],
+            id = 'api-roster-selection-div'),
+
+            # roster stats plot output
             html.H4(children = 'Match Roster Stats'),
             html.Div(id = 'api-roster-table'),
             html.Div([
                 dcc.Graph(id = 'api-roster-plot'),
-            ])
+            ]),
+
+
+
+
             ], style = {'width': '48%', 'display': 'inline-block'})
-    ])
+    ]),
+    html.H3(children = 'Match Player Stats:'),
+    html.Div(id = 'api-match-stats-table')
 ])
 
 
 
+
+
 # ~~~~ APP SERVER ~~~~~~ #
-def create_radio_buttons(options, id, value = None):
-    '''
-    Return a radio button component
-    options = [{'label': i, 'value': i} for i in plot_types]
-    '''
-    if value != None:
-        return(dcc.RadioItems(options = options, id = id, value = value))
-    else:
-        return(dcc.RadioItems(options = options, id = id))
-
-
 # demo data
 @app.callback(
     Output(component_id = 'demo-roster-table', component_property = 'children'),
@@ -163,20 +172,19 @@ def update_demo_roster_plot_options(match_id):
     selected_plot_type = plot_types[-1] # last item, usually has values
 
     logger.debug("selected_plot_type is: {0}".format(selected_plot_type))
-    return(create_radio_buttons(options = plot_type_options, id = 'demo-plot-type', value = selected_plot_type))
+    return(vt.create_radio_buttons(options = plot_type_options, id = 'demo-plot-type', value = selected_plot_type))
 
 @app.callback(
     Output(component_id = 'demo-roster-gold-plot', component_property = 'figure'),
     [Input(component_id = 'demo-match-selection', component_property = 'value'),
     Input(component_id = 'demo-plot-type', component_property = 'value')]
 )
-def update_demo_roster_gold_plot(input_value, plot_type):
-    logger.debug("Updating input value: {0}".format(input_value))
+def update_demo_roster_gold_plot(match_id, plot_type):
+    logger.debug("Updating input value: {0}".format(match_id))
     # if vd.demo_roster_df == None:
     #     return('No match selected')
     # else:
-    if input_value != None:
-        match_id = input_value
+    if match_id != None and plot_type != None:
         vd.demo_roster_df = vd.make_demo_roster_df(match_id = match_id)
         return(vt.roster_df_plot(roster_df = vd.demo_roster_df, plot_type = plot_type))
     else:
@@ -217,7 +225,7 @@ def update_api_roster_plot_options(match_id):
     selected_plot_type = plot_types[-1] # last item, usually has values
 
     logger.debug("selected_plot_type is: {0}".format(selected_plot_type))
-    return(create_radio_buttons(options = plot_type_options, id = 'api-roster-plot-data-type-selection', value = selected_plot_type))
+    return(vt.create_radio_buttons(options = plot_type_options, id = 'api-roster-plot-data-type-selection', value = selected_plot_type))
 
 @app.callback(
     Output(component_id = 'api-roster-plot', component_property = 'figure'),
@@ -225,13 +233,79 @@ def update_api_roster_plot_options(match_id):
     Input(component_id = 'api-roster-plot-data-type-selection', component_property = 'value')]
 )
 def update_api_roster_plot(match_id, plot_type):
-    logger.debug("Updating input value for plot: {0}".format(match_id))
-    if match_id != None:
+    logger.debug("Updating input value for match, plot type: {0}, {1}".format(match_id, plot_type))
+    if match_id != None and plot_type != None:
         roster_df = vd.make_api_roster_df(match_id = match_id)
-        return(vt.roster_df_plot(roster_df = roster_df, plot_type = plot_type))
+        try:
+            return(vt.roster_df_plot(roster_df = roster_df, plot_type = plot_type))
+        except:
+            logger.debug("Plot could not be created for match: {0}, {1}".format(match_id, plot_type))
+            return('Plot could not be created')
     else:
-        return('No match selected')
+        return('Match or plot has not been selected')
 
+
+@app.callback(
+    Output(component_id = 'api-roster-selection-div', component_property = 'children'),
+    [Input(component_id = 'api-match-selection', component_property = 'value')]
+)
+def update_api_team_roster_buttons(match_id):
+    '''
+    Update the radio buttons with the available team roster IDs
+    '''
+    logger.debug("Rebuilding radio buttons for api_team_roster_buttons for match: {0}".format(match_id))
+    match = vt.get_glmatch(data = vd.matches, match_id = match_id)
+    roster_ids = [roster.id for roster in match.rosters]
+    logger.debug("Available rosters are: {0}".format(roster_ids))
+    roster_options = [{'label': i, 'value': i} for i in roster_ids]
+    selected_roster = roster_options[0]
+    logger.debug("selected_roster is: {0}".format(selected_roster))
+    return(vt.create_radio_buttons(options = roster_options, id = 'api-team-roster-selection', value = selected_roster))
+
+@app.callback(
+    Output(component_id = 'api-match-gameMode-div', component_property = 'children'),
+    [Input(component_id = 'api-match-selection', component_property = 'value')]
+)
+def update_api_match_gamemode(match_id):
+    '''
+    Show the game mode
+    '''
+    logger.debug("Getting gameMode for match: {0}".format(match_id))
+    match = vt.get_glmatch(data = vd.matches, match_id = match_id)
+    gameMode = str(match.gameMode)
+    return(gameMode)
+
+
+#
+@app.callback(
+    Output(component_id = 'api-match-stats-table', component_property = 'children'),
+    [Input(component_id = 'api-match-selection', component_property = 'value')]
+)
+def create_api_match_player_stats_table(match_id):
+    '''
+    Create a table based on the player stats in the match
+    !!! this does not work for some reason !!!
+    '''
+    if match_id != None:
+        logger.debug("Creating player stats table for match: {0}".format(match_id))
+        match = vt.get_glmatch(data = vd.matches, match_id = match_id)
+        stats_df = vt.make_glparticipant_stats_df(match = match)
+        # return(vt.html_df_table(df = stats_df))
+        return("Select a match")
+    else:
+        return("Select a match")
+
+# @app.callback(
+#     Output(component_id = 'api-roster-table', component_property = 'children'),
+#     [Input(component_id = 'api-match-selection', component_property = 'value')]
+# )
+# def update_api_roster_table(match_id):
+#     if match_id != None:
+#         logger.debug("Updating selected-api-match-id value: {0}".format(match_id))
+#         roster_df = vd.make_api_roster_df(match_id = match_id)
+#         return(vt.html_df_table(df = roster_df))
+#     else:
+#         return('No match selected')
 
 @app.callback(
     Output(component_id = 'api-match-selection-div', component_property = 'children'),

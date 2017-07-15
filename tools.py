@@ -78,7 +78,6 @@ def get_api_key(keyfile = "api_keys/key.txt"):
 
 
 # ~~~~~ DEMO JSON DATA ~~~~~ #
-
 def get_match(data, match_id):
     '''
     Search a payload for a specific match
@@ -114,7 +113,6 @@ def get_rosters(roster_ids, data):
     return(rosters)
 
 
-
 # ~~~~~ API PAYLOAD DATA ~~~~~ #
 def get_glmatch(data, match_id):
     '''
@@ -124,6 +122,31 @@ def get_glmatch(data, match_id):
     for item in data:
         if item.id == match_id:
             return(item)
+
+def glparticipant_dict(participant, roster_id):
+    '''
+    Make a big dict out of the participant entry from a match
+    '''
+    d = {**participant.stats,
+    **{'id': participant.id},
+    **{'hero': participant.actor},
+    **participant.player.stats,
+    **{'roster_id': roster_id}}
+    return(d)
+
+def make_glparticipant_stats_df(match):
+    '''
+    Make a df with the player and participant stats
+    '''
+    roster_df_list = [pd.DataFrame.from_dict({**roster.stats, **{'roster_id': roster.id}}, orient='index') for roster in match.rosters]
+    roster_df = pd.concat(roster_df_list, axis=1).transpose()
+    #
+    participant_stats_df_list = [[pd.DataFrame.from_dict(glparticipant_dict(participant = participant, roster_id = roster.id), orient='index') for participant in roster.participants] for roster in match.rosters]
+    participant_stats_df = pd.concat([pd.concat(df_list, axis=1).transpose() for df_list in participant_stats_df_list])
+    #
+    participant_stats_df_merge = pd.merge(participant_stats_df, roster_df[['roster_id', 'side']], on='roster_id')
+    return(participant_stats_df_merge)
+
 
 
 # ~~~~~ APP COMPONENTS ~~~~~ #
@@ -199,3 +222,13 @@ def match_dropdown(matches, id, default_value = 'first'):
         return(dcc.Dropdown(
             id = id,
             options = [{'label': '{0}: {1}'.format(i + 1, match), 'value': match} for i, match in enumerate(matches)]))
+
+def create_radio_buttons(options, id, value = None):
+    '''
+    Return a radio button component
+    options = [{'label': i, 'value': i} for i in plot_types]
+    '''
+    if value != None:
+        return(dcc.RadioItems(options = options, id = id, value = value))
+    else:
+        return(dcc.RadioItems(options = options, id = id))
