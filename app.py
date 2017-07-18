@@ -81,6 +81,8 @@ api_div = html.Div(children = [
 
 
         html.Button('Get New Matches', id='api-match-update-matches-button'),
+
+        html.Div(children = [
         html.H2(children = 'Roster Plot'),
         html.H3(children = 'Pick a Plot type:'),
 
@@ -100,16 +102,23 @@ api_div = html.Div(children = [
         dcc.RadioItems(id='api-team-roster-selection')
         ],
         id = 'api-roster-selection-div'),
-
         # roster stats plot output
         html.H4(children = 'Match Roster Stats'),
-        html.Div(id = 'api-roster-table'),
-        html.Div([
+        html.Div(id = 'api-roster-table', style = {'width': '48%', 'display': 'inline-block'}),
+
+        html.Div(children = [
             dcc.Graph(id = 'api-roster-plot'),
         ]),
-        ], style = {'width': '48%', 'display': 'inline-block'}),
+
+        ], id = 'roster-div')
+
+    ], style = {'display': 'inline-block'}), # 'width': '48%',
+
+    html.Div(children = [
         html.H3(children = 'Match Player Stats:'),
         html.Div(id = 'api-match-stats-table')
+    ], id = 'api-match-stats-div')
+
 ])
 
 # setup the layout

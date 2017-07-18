@@ -210,6 +210,7 @@ def roster_df_plot(roster_df, plot_type):
     else:
         return({
         'data': [go.Bar(x = roster_df['side'], y = roster_df[plot_type])]
+        # , 'layout': go.Layout(title = '{0}'.format(plot_type)) # this one doesnt work yet 
         })
 
 def match_dropdown(matches, id, default_value = 'first'):
