@@ -76,6 +76,16 @@ def get_api_key(keyfile = "api_keys/key.txt"):
             keys.append(line.strip())
     return(keys[0])
 
+def find_coltypes(df, coltype):
+    '''
+    Search a dataframe to find the columns that match a given type
+    need this because my Pandas df keeps returning dtypes of 'object' or dtype('O') but I need
+    to treat different coltypes differently when outputting the table to HTML
+    '''
+    cols = []
+    return([col for col in df.columns if isinstance(df[col].ix[0], coltype)])
+
+
 
 # ~~~~~ DEMO JSON DATA ~~~~~ #
 def get_match(data, match_id):
@@ -131,13 +141,15 @@ def glparticipant_dict(participant, roster_id):
     **{'id': participant.id},
     **{'hero': participant.actor},
     **participant.player.stats,
-    **{'roster_id': roster_id}}
+    **{'roster_id': roster_id},
+    **{'name': participant.player.name}}
     return(d)
 
 def make_glparticipant_stats_df(match):
     '''
     Make a df with the player and participant stats
     '''
+    # [participant.player.name for participant in match.rosters[0].participants]
     roster_df_list = [pd.DataFrame.from_dict({**roster.stats, **{'roster_id': roster.id}}, orient='index') for roster in match.rosters]
     roster_df = pd.concat(roster_df_list, axis=1).transpose()
     #

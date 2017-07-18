@@ -276,7 +276,6 @@ def update_api_match_gamemode(match_id):
     return(gameMode)
 
 
-#
 @app.callback(
     Output(component_id = 'api-match-stats-table', component_property = 'children'),
     [Input(component_id = 'api-match-selection', component_property = 'value')]
@@ -290,22 +289,38 @@ def create_api_match_player_stats_table(match_id):
         logger.debug("Creating player stats table for match: {0}".format(match_id))
         match = vt.get_glmatch(data = vd.matches, match_id = match_id)
         stats_df = vt.make_glparticipant_stats_df(match = match)
-        # return(vt.html_df_table(df = stats_df))
-        return("Select a match")
+        # cols = [c for c in stats_df.columns if c not in ['itemGrants', 'itemUses', 'itemSells']]
+        player_cols = ['elo_earned_season_4', 'elo_earned_season_5', 'elo_earned_season_6', 'elo_earned_season_7', 'karmaLevel', 'level', 'lifetimeGold', 'lossStreak', 'played', 'played_ranked', 'skillTier', 'winStreak', 'wins', 'xp']
+        # participant_cols = ['assists', 'crystalMineCaptures', 'deaths', 'farm', 'firstAfkTime',
+        #        'gold', 'goldMineCaptures', 'itemGrants', 'itemSells', 'itemUses',
+        #        'items', 'jungleKills', 'karmaLevel', 'kills', 'krakenCaptures',
+        #        'level', 'minionKills', 'nonJungleMinionKills', 'skillTier', 'skinKey',
+        #        'turretCaptures', 'wentAfk', 'winner']
+        participant_cols = ['assists', 'crystalMineCaptures', 'deaths', 'farm', 'firstAfkTime',
+               'gold', 'goldMineCaptures', 'jungleKills', 'karmaLevel', 'kills', 'krakenCaptures', 'level', 'minionKills', 'nonJungleMinionKills', 'skillTier', 'winner']
+        player_summary_cols = ['hero', 'skinKey', 'name', 'side']
+        player_summary_cols = [c for c in stats_df.columns if c in player_summary_cols]
+        logger.debug('player_summary_cols:\n{0}'.format(player_summary_cols))
+        logger.debug(stats_df[player_summary_cols])
+
+        # convert float cols to int
+        stats_df[vt.find_coltypes(df = stats_df, coltype = float)] = stats_df[vt.find_coltypes(df = stats_df, coltype = float)].applymap(int)
+        # convert booleans to strings
+        stats_df[vt.find_coltypes(df = stats_df, coltype = bool)] = stats_df[vt.find_coltypes(df = stats_df, coltype = bool)].applymap(str)
+        # add numbers column
+        stats_df[''] = stats_df.index
+        return([
+        html.Div(children = [
+            html.H4(children = 'Player Info'),
+            vt.html_df_table(df = stats_df[[''] + player_summary_cols]),
+            html.H4(children = 'Player Info'),
+            vt.html_df_table(df = stats_df[[''] + player_cols]),
+            html.H4(children = 'Match Info'),
+            vt.html_df_table(df = stats_df[[''] + participant_cols])
+            ])
+        ])
     else:
         return("Select a match")
-
-# @app.callback(
-#     Output(component_id = 'api-roster-table', component_property = 'children'),
-#     [Input(component_id = 'api-match-selection', component_property = 'value')]
-# )
-# def update_api_roster_table(match_id):
-#     if match_id != None:
-#         logger.debug("Updating selected-api-match-id value: {0}".format(match_id))
-#         roster_df = vd.make_api_roster_df(match_id = match_id)
-#         return(vt.html_df_table(df = roster_df))
-#     else:
-#         return('No match selected')
 
 @app.callback(
     Output(component_id = 'api-match-selection-div', component_property = 'children'),
